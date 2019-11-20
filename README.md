@@ -1,6 +1,10 @@
 # Tezos: If This Then That
 The official "If This, Then That" project for the Tezos blockchain. The project acts as a protocol-level trigger and events platform for both on-chain and off-chain activity.
 
+The live point-and-click interface is available for end users at https://dash.fabrx.io/ifttt/tezos/. 
+
+The main API endpoints can be accessed from the https://api.tezosapi.com/ base url.
+
 # API Documentation
 The API servers as a developmer gateway to launch triggers and actions, interact with the Fabrx Tezos node (node.tezosapi.com), call endpoints of the Unified Tezos API (api.tezosapi.com), and run provided websocket connections.
 
