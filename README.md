@@ -415,3 +415,15 @@ RESPONSE: [
     "pct_account_reuse": 100,
     endorsers:[...]}
 		
+## Tezos IFTTT Websocket
+
+Tezos websocket is available at ws://websocket.tezosapi.com. The address of the baker that you would like to subscribe to must be passed when subscribing to the websocket.
+
+Example Call:
+
+1. Connect to ws://websocket.tezosapi.com
+2. Enter Tezos wallet address of the baker you wish to monitor (ex: tz1P2Po7YM526ughEsRbY4oR9zaUPDZjxFrb)
+
+RESPONSE: <br />
+{"balance": "1635176756166", "frozen_balance": "1147658284917", "staking_balance": "12241096788028", "delegated_balance": "10639586398514", "deactivated": false, "grace_period": 177}<br />
+{"kind": "freezer", "category": "rewards", "delegate": "tz1P2Po7YM526ughEsRbY4oR9zaUPDZjxFrb", "cycle": 171, "change": "2000000", "hash": "ooyA9pRwztDfRa97RNuD1ftcS8u4g4T2SKqZGAbfd2kacSVMscs"}
