@@ -237,6 +237,23 @@ Data<br />
 			}
 }}
 
+_Get Google Sheets Data on Trigger_
+
+Subtypes<br />
+{"action_subtype": "google_sheets"}<br />
+
+Data<br />
+{""action_data":
+	{
+			"email": "",
+			"webhook": "",
+			"sheets_data": {
+       		"spreadsheetId":"", 
+       		"sheetName":"", 
+       		"rows":""
+       }
+}}
+
 ## Fabrx Tezos Node
 
 The Fabrx Tezos Node runs an operating Tezos node, offered for usage to the public in a manner similar to Infura. Feel free to use the node endpoint for testing or mainnet activity! For documentation purposes, please reference https://tezos.gitlab.io/tezos/api/rpc.html.
