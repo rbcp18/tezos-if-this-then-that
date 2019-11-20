@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  {% load staticfiles %}
+
+  <!-- Custom fonts for this template-->
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+
+  <!-- Custom styles for this template-->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+{% csrf_token %}
+<body id="page-top">
+
+  <!-- Page Wrapper -->
+  <div id="wrapper">
+
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+
+      <!-- Main Content -->
+      <div id="content">
+
+        <!-- Begin Page Content -->
+        <div class="container-fluid" style="padding-top: 100px;">
+          
+
+          <div class="row d-flex justify-content-center">
+            <div class="col-xs-10 col-sm-8 col-md-6 col-lg-4 mb-4 mt-2">
+              <div class="card shadow-lg mb-6">
+                <div class="card-header">
+
+                  <div class="row d-flex align-items-center justify-content-center mt-2 mb-2">
+                    <div class="col-4 col-sm-4 col-md-4 col-lg-3">
+                      <div class="card">
+                        <img src="https://fabrx-logos.s3-us-west-1.amazonaws.com/Fabrx_Logo-removebg+(1).png" width="90%" class="" style="padding-top: 5%;padding-bottom: 5%; margin-left: 5%;">
+                      </div>
+                    </div>
+                    <div class="col-1 col-xs-1 col-sm-1 col-md-1 col-lg-1 d-flex align-items-center justify-content-center">
+                      <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="col-4 col-xs-4 col-sm-4 col-md-4 col-lg-3">
+                      <div class="card">
+                        <img src="https://img.icons8.com/material-rounded/96/000000/bell.png" width="90%" class="" style="padding-top: 5%;padding-bottom: 5%; margin-left: 5%;">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row d-flex align-items-center justify-content-center mt-2">
+                    <div class="col-4 col-xs-4 col-sm-4 col-md-4 col-lg-3">
+                      <font color="black"><p class="text-center">Fabrx</p></font>
+                    </div>
+                    <div class="col-1 col-xs-1 col-sm-1 col-md-1 col-lg-1 d-flex align-items-center justify-content-center">
+                      
+                    </div>
+                    <div class="col-4 col-xs-4 col-sm-4 col-md-4 col-lg-3">
+                      <font color="black"><p class="text-center">Alerts</p></font>
+                    </div>
+                  </div>
+                  
+                  
+                </div>
+                <div class="card-body space-1">
+                  <p class="mb-0 mt-2"><i>When this happens...</i></p>
+                  
+                  <div class="card shadow-sm" style="padding-left: 5px;cursor: pointer;" data-toggle="modal" data-target="#triggerModal">
+                    <div class="row mt-3">
+                      <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                        <img id="selected_trigger_icon" src="https://img.icons8.com/officel/80/000000/cook-female.png" width="100%" class="ml-2">
+                      </div>
+                      <div class="col-9 col-sm-9 col-md-9 col-lg-9">
+                        <p><font color="black"><b><span id="selected_trigger_main_name">Baker Endorsement</span> <i class="fas fa-chevron-circle-down"></i></b><br><span id="sub_title_main_card">Baker Endorsement of Block</span></font></p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div id="trigger_input_div">
+                    <div class="card shadow-sm mt-2"><input id="trigger-input-number-0" type="text" class="form-control" placeholder="XTZ Address (of Baker)" style="text-align: left; width: 100%; border: 0;"></div>
+                  </div>
+                  
+                  
+                  <div class="d-flex justify-content-center mt-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
+                      width="90" height="50"
+                      viewBox="0 0 172 172"
+                      style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g fill="#cccccc"><path d="M85.91042,5.65495c-3.16203,0.04943 -5.68705,2.6496 -5.64375,5.81172v149.06667c-0.02924,2.06765 1.05709,3.99087 2.843,5.03322c1.78592,1.04236 3.99474,1.04236 5.78066,0c1.78592,-1.04236 2.87225,-2.96558 2.843,-5.03322v-149.06667c0.02122,-1.54972 -0.58581,-3.04203 -1.68279,-4.1369c-1.09698,-1.09487 -2.59045,-1.69903 -4.14013,-1.67482z"></path></g></g>
+                    </svg>
+                  </div>
+                  
+                  <p class="mb-0 mt-0"><i>Then do this...</i></p>
+                  
+                  <div class="card shadow-sm" style="padding-left: 5px;cursor: pointer;" data-toggle="modal" data-target="#actionsModalCenter">
+                    <div class="row mt-3">
+                      <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                        <img id="selected_action_icon" src="https://img.icons8.com/wired/64/000000/email.png" width="100%" class="ml-2">
+                      </div>
+                      <div class="col-9 col-sm-9 col-md-9 col-lg-9">
+                        <p><font color="black"><b><span id="selected_action_main_name">Notification</span> <i class="fas fa-chevron-circle-down"></i></b><br><span id="sub_title_main_card_action">Send Email</span></font></p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div id="action_input_div">
+                    <div class="card shadow-sm mt-2"><input id="action-input-number-0" type="text" class="form-control" placeholder="Email Address" style="text-align: left; width: 100%; border: 0;"></div>
+                  </div>
+
+                </div>
+
+                <div class="card-footer">
+                  <div class="row ">
+                    <div class="col-md-12">
+                      <button id="launch_thread_button" onclick="submitNotificationTezos();" class="btn btn-block" style="background-color: rgb(21,107,210);padding-top: 10px;padding-bottom: 10px;"><font color="white" size="4">Launch Thread</font></button>
+                    </div>
+                  </div>
+
+                <!-- End Content -->
+              </div>
+            </div>
+          </div>
+
+          <br>
+          <div style="padding-top: 100px;"></div>
+        </div>
+        <!-- /.container-fluid -->
+
+      </div>
+      <!-- End of Main Content -->
+
+    </div>
+    <!-- End of Content Wrapper -->
+
+  </div>
+  <!-- End of Page Wrapper -->
+
+  <!-- Scroll to Top Button-->
+  <a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+  </a>
+
+  <!-- Modal -->
+  <div class="modal fade" id="triggerModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header d-flex align-items-center justify-content-center">
+          <h3 class="mt-2"><font color="black"><b>Set Trigger</b></font></h3>
+        </div>
+        <div class="modal-body">
+
+          <div>
+            <h5 class="mt-3 mb-0 text-center"><font color="black">&nbsp;&nbsp;&nbsp;Baking Events</font></h5>
+          </div>
+
+          <hr width="80%">
+
+          <a href="javascript:void(0);" onclick="select_Trigger('baking_endorsement_rewards');">
+            <div class="row d-flex justify-content-center">
+              <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <img src="https://img.icons8.com/officel/80/000000/cook-female.png" width="50%" class="ml-4" >
+              </div>
+              <div class="col-7 col-sm-7 col-md-7 col-lg-7 mt-0">
+                <p class=" mb-0"><font color=""><span class="float-left"><b>Block Endorsement</b></span><span class="float-right">Baker</span></font></p>
+              </div>
+            </div>
+          </a>
+
+          <hr width="80%">
+
+          <a href="javascript:void(0);" onclick="select_Trigger('baking_delegation');">
+            <div class="row d-flex justify-content-center">
+              <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <img src="https://img.icons8.com/nolan/96/000000/arrow.png" width="50%" class="ml-4" >
+              </div>
+              <div class="col-7 col-sm-7 col-md-7 col-lg-7 mt-0">
+                <p class=" mb-0"><font color=""><span class="float-left"><b>XTZ Delegation</b></span><span class="float-right">Delegator</span></font></p>
+              </div>
+            </div>
+          </a>
+
+          <hr width="80%">
+          <br>
+          <div>
+            <h5 class="mt-3 mb-0 text-center"><font color="black">&nbsp;&nbsp;&nbsp;Wallet Events</font></h5>
+          </div>
+
+          <hr width="80%">
+          
+          <a href="javascript:void(0);" onclick="select_Trigger('wallet_xtz_sent');">
+            <div class="row d-flex justify-content-center">
+              <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <img src="https://pbs.twimg.com/profile_images/1017374364227047425/gc6a6fGi_400x400.jpg" width="50%" class="ml-4" >
+              </div>
+              <div class="col-7 col-sm-7 col-md-7 col-lg-7 mt-0">
+                <p class=" mb-0"><font color=""><span class="float-left"><b>Tezos (XTZ)</b></span><span class="float-right">Sent</span></font></p>
+              </div>
+            </div>
+          </a>
+
+          <hr width="80%">
+
+          <a href="javascript:void(0);" onclick="select_Trigger('wallet_xtz_received');">
+            <div class="row d-flex justify-content-center">
+              <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <img src="https://pbs.twimg.com/profile_images/1017374364227047425/gc6a6fGi_400x400.jpg" width="50%" class="ml-4" >
+              </div>
+              <div class="col-7 col-sm-7 col-md-7 col-lg-7 mt-0">
+                <p class=" mb-0"><font color=""><span class="float-left"><b>Tezos (XTZ)</b></span><span class="float-right">Received</span></font></p>
+              </div>
+            </div>
+          </a>
+
+          <hr width="80%">
+          <br>
+          <div>
+            <h5 class="mt-3 mb-0 text-center"><font color="black">&nbsp;&nbsp;&nbsp;Market Events</font></h5>
+          </div>
+
+          <hr width="80%">
+          
+          <a href="javascript:void(0);" onclick="select_Trigger('xtz_market_price');">
+            <div class="row d-flex justify-content-center">
+              <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <img src="http://icons.iconarchive.com/icons/cjdowner/cryptocurrency/512/Tezos-icon.png" width="50%" class="ml-4" >
+              </div>
+              <div class="col-7 col-sm-7 col-md-7 col-lg-7 mt-0">
+                <p class=" mb-0"><font color=""><span class="float-left"><b>XTZ Price</b></span><span class="float-right">CMC</span></font></p>
+              </div>
+            </div>
+          </a>
+
+          <hr width="80%">
+
+          <a href="javascript:void(0);" onclick="select_Trigger('xtz_market_volume');">
+            <div class="row d-flex justify-content-center">
+              <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <img src="http://icons.iconarchive.com/icons/cjdowner/cryptocurrency/512/Tezos-icon.png" width="50%" class="ml-4" >
+              </div>
+              <div class="col-7 col-sm-7 col-md-7 col-lg-7 mt-0">
+                <p class=" mb-0"><font color=""><span class="float-left"><b>XTZ Volume</b></span><span class="float-right">CMC</span></font></p>
+              </div>
+            </div>
+          </a>
+
+          <hr width="80%">
+
+          <a href="javascript:void(0);" onclick="select_Trigger('xtz_market_cap');">
+            <div class="row d-flex justify-content-center">
+              <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <img src="http://icons.iconarchive.com/icons/cjdowner/cryptocurrency/512/Tezos-icon.png" width="50%" class="ml-4" >
+              </div>
+              <div class="col-7 col-sm-7 col-md-7 col-lg-7 mt-0">
+                <p class=" mb-0"><font color=""><span class="float-left"><b>XTZ Market Cap</b></span><span class="float-right">CMC</span></font></p>
+              </div>
+            </div>
+          </a>
+
+          <hr width="80%">
+          <br>
+          <div>
+            <h5 class="mt-3 mb-0 text-center"><font color="black">&nbsp;&nbsp;&nbsp;Governance Events</font></h5>
+          </div>
+
+          <hr width="80%">
+          
+          <a href="javascript:void(0);" onclick="select_Trigger('xtz_governance_new_proposals');">
+            <div class="row d-flex justify-content-center">
+              <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <img src="https://image.flaticon.com/icons/png/512/48/48751.png" width="50%" class="ml-4" >
+              </div>
+              <div class="col-7 col-sm-7 col-md-7 col-lg-7 mt-0">
+                <p class=" mb-0"><font color=""><span class="float-left"><b>New Tezos Proposals</b></span><span class="float-right">Blockchain</span></font></p>
+              </div>
+            </div>
+          </a>
+
+          <hr width="80%">
+          <br>
+          <div>
+            <h5 class="mt-3 mb-0 text-center"><font color="black">&nbsp;&nbsp;&nbsp;Contract Events</font></h5>
+          </div>
+
+          <hr width="80%">
+          
+          <a href="javascript:void(0);" onclick="select_Trigger('xtz_contract_deposits');">
+            <div class="row d-flex justify-content-center">
+              <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <img src="https://icon-library.net/images/deposit-icon/deposit-icon-14.jpg" width="50%" class="ml-4" >
+              </div>
+              <div class="col-7 col-sm-7 col-md-7 col-lg-7 mt-0">
+                <p class=" mb-0"><font color=""><span class="float-left"><b>XTZ Deposits</b></span><span class="float-right">Contract</span></font></p>
+              </div>
+            </div>
+          </a>
+          <hr width="80%">
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="actionsModalCenter" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header d-flex align-items-center justify-content-center">
+          <h3 class="mt-2"><font color="black"><b>Set Action</b></font></h3>
+        </div>
+        <div class="modal-body">
+
+          <div>
+            <h5 class="mt-3 mb-0 text-center"><font color="black">&nbsp;&nbsp;&nbsp;Notifications</font></h5>
+          </div>
+
+          <hr width="80%">
+
+          <a href="javascript:void(0);" onclick="select_Action('notification_email');">
+            <div class="row d-flex justify-content-center">
+              <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <img src="https://img.icons8.com/wired/64/000000/email.png" width="50%" class="ml-4" >
+              </div>
+              <div class="col-7 col-sm-7 col-md-7 col-lg-7 mt-0">
+                <p class=" mb-0"><font color=""><span class="float-left"><b>Email</b></span><span class="float-right">SMTP</span></font></p>
+              </div>
+            </div>
+          </a>
+
+          <hr width="80%">
+          <br>
+          <div>
+            <h5 class="mt-3 mb-0 text-center"><font color="black">&nbsp;&nbsp;&nbsp;Webhooks</font></h5>
+          </div>
+
+          <hr width="80%">
+          
+          <a href="javascript:void(0);" onclick="select_Action('webhook_json');">
+            <div class="row d-flex justify-content-center">
+              <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <img src="https://img.icons8.com/dotty/80/000000/json.png" width="50%" class="ml-4" >
+              </div>
+              <div class="col-7 col-sm-7 col-md-7 col-lg-7 mt-0">
+                <p class=" mb-0"><font color=""><span class="float-left"><b>JSON Data</b></span><span class="float-right">Webhook</span></font></p>
+              </div>
+            </div>
+          </a>
+
+          <hr width="80%">
+
+          <a href="javascript:void(0);" onclick="select_Action('webhook_rpc');">
+            <div class="row d-flex justify-content-center">
+              <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <img src="https://img.icons8.com/carbon-copy/100/000000/curly-brackets.png" width="50%" class="ml-4" >
+              </div>
+              <div class="col-7 col-sm-7 col-md-7 col-lg-7 mt-0">
+                <p class=" mb-0"><font color=""><span class="float-left"><b>RPC Operation</b></span><span class="float-right">Webhook</span></font></p>
+              </div>
+            </div>
+          </a>
+
+          <hr width="80%">
+
+          <a href="javascript:void(0);" onclick="select_Action('webhook_api_action');">
+            <div class="row d-flex justify-content-center">
+              <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <img src="https://img.icons8.com/wired/64/000000/api.png" width="50%" class="ml-4" >
+              </div>
+              <div class="col-7 col-sm-7 col-md-7 col-lg-7 mt-0">
+                <p class=" mb-0"><font color=""><span class="float-left"><b>API Actions</b></span><span class="float-right">Webhook</span></font></p>
+              </div>
+            </div>
+          </a>
+
+          <hr width="80%">
+
+          <a href="javascript:void(0);" onclick="select_Action('webhook_google_sheets');">
+            <div class="row d-flex justify-content-center">
+              <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <img src="https://img.icons8.com/dotty/160/000000/google-sheets.png" width="50%" class="ml-4" >
+              </div>
+              <div class="col-7 col-sm-7 col-md-7 col-lg-7 mt-0">
+                <p class=" mb-0"><font color=""><span class="float-left"><b>Google Sheets</b></span><span class="float-right">Webhook</span></font></p>
+              </div>
+            </div>
+          </a>
+
+          <hr width="80%">
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="threadLaunchedModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header d-flex align-items-center justify-content-center">
+          <h3 class="mt-2"><font color="#156bd2"><b>Thread Launched  🎉</b></font></h3>
+        </div>
+        <div class="modal-body">
+          
+          <h2 class="text-center" style="padding-top: 40px;"><font color="black"><b>Congrats! Your Thread has Launched 👌</b></font></h2>
+          <div class="d-flex align-items-center justify-content-center">
+            <p class="text-center" style="padding-top: 50px;width: 90%;">Each Fabrx Thread runs it's own Trigger-Action system. You can unsubscribe directly from your email.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+  <script type="text/javascript">
+
+    var selected_trigger_main_name = document.getElementById('selected_trigger_main_name')
+    var selected_trigger_icon = document.getElementById('selected_trigger_icon')
+    var sub_title_main_card = document.getElementById('sub_title_main_card')
+
+    var trigger_data = {
+      "baking_endorsement_rewards" : 
+        {
+          "main_title":"Baking Endorsement", 
+          "sub_title":"Baker Endorsement of Block",
+          "trigger_input":["XTZ Address (of Baker)"],
+          "icon_url":"https://img.icons8.com/officel/80/000000/cook-female.png"
+        },
+      "wallet_xtz_sent" :
+        {
+          "main_title":"Tezos (XTZ)", 
+          "sub_title":"Sent from Wallet",
+          "trigger_input":["XTZ Address"],
+          "icon_url":"https://pbs.twimg.com/profile_images/1017374364227047425/gc6a6fGi_400x400.jpg"
+        },
+      "wallet_xtz_received" :
+        {
+          "main_title":"Tezos (XTZ)", 
+          "sub_title":"Received by Wallet",
+          "trigger_input":["XTZ Address"],
+          "icon_url":"https://pbs.twimg.com/profile_images/1017374364227047425/gc6a6fGi_400x400.jpg"
+        },
+      "baking_delegation" :
+        {
+          "main_title":"XTZ Delegation", 
+          "sub_title":"Delegation of XTZ to Baker",
+          "trigger_input":["XTZ Address (of Delegator)"],
+          "icon_url":"https://img.icons8.com/nolan/96/000000/arrow.png"
+        },
+      "xtz_market_price" :
+        {
+          "main_title":"XTZ Price", 
+          "sub_title":"Price Above",
+          "trigger_input":["Price (eg. 1 = $1)"],
+          "icon_url":"http://icons.iconarchive.com/icons/cjdowner/cryptocurrency/512/Tezos-icon.png"
+        },
+      "xtz_market_volume" :
+        {
+          "main_title":"XTZ Volume", 
+          "sub_title":"24 Hour Volume Above",
+          "trigger_input":["Volume (eg. 1000000 = $1,000,000)"],
+          "icon_url":"http://icons.iconarchive.com/icons/cjdowner/cryptocurrency/512/Tezos-icon.png"
+        },
+      "xtz_market_cap" :
+        {
+          "main_title":"XTZ Price", 
+          "sub_title":"Market Cap Above",
+          "trigger_input":["Price (eg. 1000000 = $1,000,000)"],
+          "icon_url":"http://icons.iconarchive.com/icons/cjdowner/cryptocurrency/512/Tezos-icon.png"
+        },
+      "xtz_governance_new_proposals" :
+        {
+          "main_title":"Tezos Governance", 
+          "sub_title":"New Proposal Created",
+          "trigger_input":[],
+          "icon_url":"https://image.flaticon.com/icons/png/512/48/48751.png"
+        },
+      "xtz_contract_deposits" : {
+        "main_title":"Tezos Contract Events", 
+        "sub_title":"New Deposit in Smart Contract",
+        "trigger_input":["XTZ Address (of Smart Contract)"],
+        "icon_url":"https://icon-library.net/images/deposit-icon/deposit-icon-14.jpg"
+      }
+    }
+
+    var trigger_id_global = 'baking_endorsement_rewards';
+
+    function select_Trigger(trigger_id){
+      trigger_id_global = trigger_id
+      selected_trigger_main_name.innerHTML = trigger_data[trigger_id]["main_title"]
+
+      sub_title_main_card.innerHTML = trigger_data[trigger_id]["sub_title"]
+      selected_trigger_icon.src = trigger_data[trigger_id]["icon_url"]
+
+      document.getElementById('trigger_input_div').innerHTML = "";
+
+      var i = 0;
+      trigger_data[trigger_id]["trigger_input"].forEach(function(f){
+        console.log(f)
+          document.getElementById('trigger_input_div').innerHTML = document.getElementById('trigger_input_div').innerHTML + '<div class="card shadow-sm mt-2"><input id="trigger-input-number-'+i.toString()+'" type="text" class="form-control" placeholder="'+f+'" style="text-align: left; width: 100%; border: 0;"></div>';
+          i+=1;
+      });
+
+      if (trigger_data[trigger_id]["trigger_input"].length == 0){
+        document.getElementById('trigger_input_div').innerHTML = document.getElementById('trigger_input_div').innerHTML + '<div class="card shadow-sm mt-2" style="display:none;"><input id="trigger-input-number-0" type="text" class="form-control" style="text-align: left; width: 100%; border: 0;"></div>';
+      }
+
+      $('#triggerModal').modal('hide')
+      
+    }
+
+    var action_data = {
+      "notification_email" : 
+        {
+          "main_title":"Notification", 
+          "sub_title":"Send Email",
+          "action_input":["Email Address"],
+          "icon_url":"https://img.icons8.com/wired/64/000000/email.png"
+        },
+      "webhook_json" :
+        {
+          "main_title":"Webhook", 
+          "sub_title":"Pass JSON Data",
+          "action_input":["Email Address", "Webhook URL"],
+          "icon_url":"https://img.icons8.com/dotty/80/000000/json.png"
+        },
+      "webhook_rpc" :
+        {
+          "main_title":"Webhook", 
+          "sub_title":"Pass RPC Data for Send Txn",
+          "action_input":["Email Address", "Webhook URL", "Source Address (RPC Construct Txn)", "Destination Address (RPC Construct Txn)", "Amount mXTZ (RPC Construct Txn)"],
+          "icon_url":"https://img.icons8.com/carbon-copy/100/000000/curly-brackets.png"
+        },
+      "webhook_api_action" :
+        {
+          "main_title":"Webhook", 
+          "sub_title":"Pass Data with API Result",
+          "action_input":["Email Address", "Webhook URL", "API Base URL", "API Path URL", "API Method (eg. GET)", "API Body Payload (eg. {'foo':'bar'})"],
+          "icon_url":"https://img.icons8.com/wired/64/000000/api.png"
+        },
+      "webhook_google_sheets" :
+        {
+          "main_title":"Webhook", 
+          "sub_title":"Google Sheet Get Rows",
+          "action_input":["Email Address", "Webhook URL (Optional)", "Spreadsheet ID (eg. 1ukRKxlvH7H1jv-sH74qY6yJ7LhoZ_9xZAi3Y3cJ24oo)", "Sheet Name (eg. Sheet1)", "Rows (eg. A1:D5)"],
+          "icon_url":"https://img.icons8.com/dotty/160/000000/google-sheets.png"
+        }
+    }
+
+    var action_id_global = 'notification_email'
+
+    function select_Action(action_id){
+      action_id_global = action_id
+      selected_action_main_name.innerHTML = action_data[action_id]["main_title"]
+
+      sub_title_main_card_action.innerHTML = action_data[action_id]["sub_title"]
+      selected_action_icon.src = action_data[action_id]["icon_url"]
+
+      document.getElementById('action_input_div').innerHTML = "";
+
+      var i = 0;
+      action_data[action_id]["action_input"].forEach(function(f){
+        console.log(f)
+          document.getElementById('action_input_div').innerHTML = document.getElementById('action_input_div').innerHTML + '<div class="card shadow-sm mt-2"><input id="action-input-number-'+i.toString()+'" type="text" class="form-control" placeholder="'+f+'" style="text-align: left; width: 100%; border: 0;"></div>';
+          i+=1;
+      });
+
+      if (action_data[action_id]["action_input"].length == 0){
+        document.getElementById('action_input_div').innerHTML = document.getElementById('action_input_div').innerHTML + '<div class="card shadow-sm mt-2" style="display:none;"><input id="action-input-number-0" type="text" class="form-control" style="text-align: left; width: 100%; border: 0;"></div>';
+      }
+
+      $('#actionsModalCenter').modal('hide')
+    }
+
+    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+    function csrfSafeMethod(method) {return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));}
+    $.ajaxSetup({beforeSend: function(xhr, settings) {
+      if (!csrfSafeMethod(settings.type) && !this.crossDomain) {xhr.setRequestHeader("X-CSRFToken", csrftoken);}
+    }});
+
+    function submitNotificationTezos(){
+      var notification_address_input = document.getElementById("event-contact-address")
+      var coin_wallet_input = document.getElementById("trigger-input-number-0")
+      var launch_thread_button = document.getElementById("launch_thread_button")
+      
+      launch_thread_button.disabled = true
+      launch_thread_button.innerHTML = '<font color="white" size="4">Launching Thread</font>'
+
+      action_input_array = {};
+
+      $("input[id*='action-input-number']").each(function (i, el) {
+         action_input_array[el.placeholder] = el.value
+      });
+
+      $.ajax({
+        type: "POST",
+        url: 'ajax/ifttt/launch/',
+        data: {
+          'wallet_address':coin_wallet_input.value,
+          'trigger_id':trigger_id_global,
+          'action_id':action_id_global,
+          'action_input_array':JSON.stringify(action_input_array)
+        },
+        dataType: "json",
+        success: function (data) {
+          launch_thread_button.disabled = false
+          launch_thread_button.innerHTML = '<font color="white" size="4">Thread Launched 🎉</font>'
+          $('#threadLaunchedModal').modal('show')
+        },
+        error: function(obj, status, err) {  
+
+        }
+      });
+    }
+  </script>
+
+</body>
+
+</html>
