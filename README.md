@@ -242,9 +242,9 @@ URL: https://node.tezosapi.com <br />
 Example Node Call:
 
 Get Current Block Info<br />
-URL: http://node.tezosapi.com/chains/main/blocks/head/
-METHOD: GET
-BODY: {}
+URL: http://node.tezosapi.com/chains/main/blocks/head/<br />
+METHOD: GET<br />
+BODY: {}<br />
 
 RESPONSE: {"protocol": "",
     "chain_id": "",
@@ -252,3 +252,166 @@ RESPONSE: {"protocol": "",
     "header": [...],
     "metadata": [...],
     "operations": [...]}
+
+## Unified Tezos API
+
+We've integrated baker statistics, block explorer data, and market activity into a unified, publicly available endpoint. We intend for TezosApi.com (which includes both the node RPC index and the forementioned data points) to be the sole API a developer needs to connect to in order to access Tezos data.
+
+Third party api integrations are proxied though AWS Gateway, thus developers are able to access all enpoints from the original API.
+
+* Binance (market activity)
+* Coincap (market activity)
+* mytezosbaker (baker stats)
+* tezosid (block explorer)
+* tzstats (block explorer)
+
+_**Market Activity**_
+
+**Binance API <br />**
+
+For all endpoints, please reference: https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md.
+
+URL: https://api.tezosapi.com/v1/binance/ <br />
+
+Example Call:
+
+Get Current Tezos Price<br />
+URL: https://api.tezosapi.com/v1/binance/api/v3/avgPrice?symbol=XTZUSDT<br />
+METHOD: GET<br />
+BODY: {}<br />
+
+RESPONSE: {"mins":5,"price":"1.20428464"}
+
+**Coincap API <br />**
+
+For all endpoints, please reference: https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md.
+
+URL: https://api.tezosapi.com/v1/coincap/ <br />
+
+Endpoints:<br />
+Market Data: https://api.tezosapi.com/v1/coincap/tezos-market-data<br />
+Market History: https://api.tezosapi.com/v1/coincap/tezos-market-history<br />
+Market Pairs: https://api.tezosapi.com/v1/coincap/tezos-markets<br />
+
+Example Call:
+
+Get Current Tezos Market Data<br />
+URL: https://api.tezosapi.com/v1/coincap/tezos-market-data<br />
+METHOD: GET<br />
+BODY: {}<br />
+
+RESPONSE: {"data":{"id":"tezos","rank":"19","symbol":"XTZ","name":"Tezos","supply":"660373611.9727800000000000","maxSupply":null,"marketCapUsd":"798888171.1054751872675239","volumeUsd24Hr":"1488797.1496676131739530","priceUsd":"1.2097518080998134","changePercent24Hr":"-0.6105680286499922","vwap24Hr":"1.2033556141398717"},"timestamp":1574208502706}
+
+
+_**Baker Stats**_
+
+**MyTezosBaker API <br />**
+
+For all endpoints, please reference: https://api.mytezosbaker.com/.
+
+URL: https://api.tezosapi.com/v1/mytezosbaker/ <br />
+
+Example Call:
+
+Get Data on All Bakers<br />
+URL: https://api.tezosapi.com/v1/mytezosbaker/v1/bakers/<br />
+METHOD: GET<br />
+BODY: {}<br />
+
+RESPONSE: {
+    "bakers":[...]}
+    
+    
+_**Block Explorer Data**_
+
+**TezosId API <br />**
+
+For all endpoints, please reference: https://tezos.id/dev-apis.
+
+URL: https://api.tezosapi.com/v1/tezosid/ <br />
+
+Example Call:
+
+Get Most Recent Block on Mainnet<br />
+URL: https://api.tezosapi.com/v1/tezosid/mooncake/mainnet/v1/blocks?n=1<br />
+METHOD: GET<br />
+BODY: {}<br />
+
+RESPONSE: [
+    {
+        "blocksAlpha": {...},
+	"block": {...},
+	"opCount": 24,
+	"blockStat": {}
+	}
+	
+**TzStats API <br />**
+
+For all endpoints, please reference: https://tzstats.com/docs/api/index.html#explorer-endpoints.
+
+URL: https://api.tezosapi.com/v1/tzstats/ <br />
+
+Example Call:
+
+Get Data From Specific Block<br />
+URL: https://api.tezosapi.com/v1/tzstats/explorer/block/627341<br />
+METHOD: GET<br />
+BODY: {}<br />
+
+RESPONSE: [
+    {
+            "hash": "BKqv8SBNabXEMXV9fsy21yx9BNsqWBKVVp9ca4KTMpGsF2Wi8Uj",
+    "predecessor": "BKr3kjkbi5LndjDTDDSPUWubZjrdSBCWLJudmuGYuiVuG2j8fvj",
+    "successor": "BLWT4x43zqzbtRzWNShkuU1DaTjU9fX34Qs4V3Hku2ZgYxiEpPW",
+    "baker": "tz1SxEdtfkFChtqioi96hvMfisj4mt744rXi",
+    "height": 627341,
+    "cycle": 153,
+    "is_cycle_snapshot": false,
+    "time": "2019-09-28T13:10:51Z",
+    "solvetime": 60,
+    "version": 4,
+    "validation_pass": 4,
+    "fitness": 19846425,
+    "priority": 0,
+    "nonce": 16299522299,
+    "voting_period_kind": "promotion_vote",
+    "endorsed_slots": 4294967295,
+    "n_endorsed_slots": 32,
+    "n_ops": 28,
+    "n_ops_failed": 0,
+    "n_ops_contract": 0,
+    "n_tx": 1,
+    "n_activation": 0,
+    "n_seed_nonce_revelations": 0,
+    "n_double_baking_evidences": 0,
+    "n_double_endorsement_evidences": 0,
+    "n_endorsement": 26,
+    "n_delegation": 0,
+    "n_reveal": 1,
+    "n_origination": 0,
+    "n_proposal": 0,
+    "n_ballot": 0,
+    "volume": 2047.9,
+    "fees": 0.01142,
+    "rewards": 80,
+    "deposits": 2560,
+    "unfrozen_fees": 0,
+    "unfrozen_rewards": 0,
+    "unfrozen_deposits": 0,
+    "activated_supply": 0,
+    "burned_supply": 0,
+    "n_accounts": 30,
+    "n_new_accounts": 0,
+    "n_new_implicit": 0,
+    "n_new_managed": 0,
+    "n_new_contracts": 0,
+    "n_cleared_accounts": 0,
+    "n_funded_accounts": 0,
+    "gas_limit": 20400,
+    "gas_used": 20200,
+    "gas_price": 0.56535,
+    "storage_size": 0,
+    "days_destroyed": 203.367847,
+    "pct_account_reuse": 100,
+    endorsers:[...]}
+		
