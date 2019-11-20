@@ -360,10 +360,10 @@ BODY: {}<br />
 
 RESPONSE: [
     {
-            "hash": "BKqv8SBNabXEMXV9fsy21yx9BNsqWBKVVp9ca4KTMpGsF2Wi8Uj",
-    "predecessor": "BKr3kjkbi5LndjDTDDSPUWubZjrdSBCWLJudmuGYuiVuG2j8fvj",
-    "successor": "BLWT4x43zqzbtRzWNShkuU1DaTjU9fX34Qs4V3Hku2ZgYxiEpPW",
-    "baker": "tz1SxEdtfkFChtqioi96hvMfisj4mt744rXi",
+            "hash": "",
+    "predecessor": "",
+    "successor": "",
+    "baker": "",
     "height": 627341,
     "cycle": 153,
     "is_cycle_snapshot": false,
