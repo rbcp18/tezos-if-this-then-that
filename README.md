@@ -6,11 +6,11 @@ The live point-and-click interface is available for end users at https://dash.fa
 The main API endpoints can be accessed from the https://api.tezosapi.com/ base url.
 
 # API Documentation
-The API servers as a developmer gateway to launch triggers and actions, interact with the Fabrx Tezos node (node.tezosapi.com), call endpoints of the Unified Tezos API (api.tezosapi.com), and run provided websocket connections.
+The API serves as a development gateway to launch triggers and actions, interact with the Fabrx Tezos node (node.tezosapi.com), call endpoints of the Unified Tezos API (api.tezosapi.com), and run provided websocket connections.
 
 ## Triggers and Actions
 
-Launching a trigger and action thread is trivial with the Fabrx API endpoint. Simple edit the trigger or action payload variables to launch the desired thread. For body parameters, those with an empty string ("") are to be filled in. In addition, those with an array ([]) necessitate you to select one variable.
+Launching a trigger and action thread is trivial with the Fabrx API endpoint. Simply edit the trigger or action payload variables to launch the desired thread. For body parameters, those with an empty string ("") are to be filled in. In addition, those with an array ([]) necessitate you to select one variable.
 
 Here's the general framework:
 
