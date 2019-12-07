@@ -565,6 +565,11 @@
         document.getElementById('action_input_div').innerHTML = document.getElementById('action_input_div').innerHTML + '<div class="card shadow-sm mt-2" style="display:none;"><input id="action-input-number-0" type="text" class="form-control" style="text-align: left; width: 100%; border: 0;"></div>';
       }
 
+      var above_below_events = ["xtz_market_price", "xtz_market_volume", "xtz_market_cap"];
+      if (above_below_events.includes(trigger_id)){
+        document.getElementById('trigger_input_div').innerHTML = document.getElementById('trigger_input_div').innerHTML + '<div class="card shadow-sm mt-2"><div class="btn-group" role="group" aria-label="Basic example"><button type="button" class="btn btn-secondary" id="market_activity_direction_above_btn" onclick="marketActivityDirection(\'above\')">Above</button><button type="button" class="btn btn-outline-secondary" id="market_activity_direction_below_btn" onclick="marketActivityDirection(\'below\')">Below</button></div></div>';
+      }
+
       $('#actionsModalCenter').modal('hide')
     }
 
@@ -595,7 +600,8 @@
           'wallet_address':coin_wallet_input.value,
           'trigger_id':trigger_id_global,
           'action_id':action_id_global,
-          'action_input_array':JSON.stringify(action_input_array)
+          'action_input_array':JSON.stringify(action_input_array),
+          'market_activity_target_direction': market_activity_target_direction // only relevent for market activity triggers
         },
         dataType: "json",
         success: function (data) {
@@ -605,6 +611,25 @@
         },
         error: function(obj, status, err) {  
 
+        }
+      });
+    }
+
+
+    // Change Market Triggers to Above or Below
+
+    var directions = ['above', 'below']
+    var market_activity_target_direction = 'above'
+
+    function marketActivityDirection(direction){
+      market_activity_target_direction = direction
+      directions.forEach(function(element) {
+        if (element == direction){
+          var market_activity_direction_btn = document.getElementById('market_activity_direction_'+element+'_btn')
+          market_activity_direction_btn.className = 'btn btn-secondary'
+        }else{
+          var market_activity_direction_btn = document.getElementById('market_activity_direction_'+element+'_btn')
+          market_activity_direction_btn.className = 'btn btn-outline-secondary'
         }
       });
     }
