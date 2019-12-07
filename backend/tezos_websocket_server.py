@@ -9,15 +9,15 @@ sleepBetweenUpdatesInSeconds = 15.0
 websocketHost = "localhost"
 websocketPort = 80
 
-def getBlockName():
-    url = 'https://node.tezosapi.com/chains/main/blocks/'
+def getBlockLevel():
+    url = 'https://node.tezosapi.com/chains/main/blocks/head'
     result = requests.get(url)
-    return result.json()[0][0]
+    return result.json()["header"]["level"]
 
-def getAllTxRecords(blockName):
+def getAllTxRecords():
     txRecords = []
     
-    url = 'https://node.tezosapi.com/chains/main/blocks/'+str(blockName)
+    url = 'https://node.tezosapi.com/chains/main/blocks/head'
     result = requests.get(url)
     result_json = result.json()['operations'][0]
 
@@ -38,13 +38,13 @@ async def handler(websocket, path):
         # Loop on that baker, outputting general baker info, operation data pertaining to baker
         async with aiohttp.ClientSession() as session:
             
-            blockId = getBlockName()
-            print (f"Current block: {blockId}")
+            blockLevel = getBlockLevel()
+            print (f"Current block: {blockLevel}")
 
             while True:
 
-                newBlockId = getBlockName()
-                if blockId != newBlockId:
+                newblockLevel = getBlockLevel()
+                if blockLevel != newblockLevel:
                     try: 
 
                         # Retrieve and pass along the general delegate info (as JSON string)
@@ -56,14 +56,14 @@ async def handler(websocket, path):
 
                         
                         # Retrieve and pass along the operation info for this particular baker on block (as JSON string).
-                        operations = getAllTxRecords(blockId)
+                        operations = getAllTxRecords()
                         for tx in operations:
                             if tx["delegate"] == bakerAddress:
                                 await websocket.send((json.dumps(tx)))
                     except Exception as err:
-                        print (f"Cannot process block: {blockId}, skipping it, because of exception", err)                
+                        print (f"Cannot process block: {blockLevel}, skipping it, because of exception", err)                
 
-                blockId = newBlockId
+                blockLevel = newblockLevel
 
                 # Sleep between updates
                 await asyncio.sleep(sleepBetweenUpdatesInSeconds)

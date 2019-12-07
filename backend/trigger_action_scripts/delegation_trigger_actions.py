@@ -12,13 +12,13 @@ from pgHelpers import *
 
 # Blockchain IFTTT Code
 
-def getBlockName():
-    url = 'https://node.tezosapi.com/chains/main/blocks/'
+def getBlockLevel():
+    url = 'https://node.tezosapi.com/chains/main/blocks/head'
     result = requests.get(url)
-    return result.json()[0][0]
+    return result.json()["header"]["level"]
 
-def getBlockTxCount(blockId):
-    url = 'https://node.tezosapi.com/chains/main/blocks/'+str(blockId)
+def getBlockTxCount():
+    url = 'https://node.tezosapi.com/chains/main/blocks/head'
     result = requests.get(url)
     return len(result.json()['operations'][3])
 
@@ -36,9 +36,9 @@ def getAllTxRecords(blockNum):
             txRecords.append(baking)
     return txRecords
 
-def processBlock(blockId, pool):
-    print (blockId)
-    txList = getAllTxRecords(blockId)
+def processBlock(blockLevel, pool):
+    print (blockLevel)
+    txList = getAllTxRecords(blockLevel)
     print (txList)
     simpleTxList = [(x['source'].lower(), x['metadata']['balance_updates'][1]['delegate'].lower(), x['hash'].lower()) for x in txList]
     print ("SIMPLE LIST")
@@ -280,32 +280,32 @@ def main_real():
     pg_pool = psycopg2.pool.SimpleConnectionPool(1, 20, host="",database="", user="", password="", port="", options=f'-c search_path={schema}',)
 
     # Loop until we get a new block, then print block details
-    blockId = getBlockName()
-    print (f"Current block: {blockId}")
+    blockLevel = getBlockLevel()
+    print (f"Current block: {blockLevel}")
 
     while(True):
         time.sleep(1.0)  # Sleep for 1 second
 
-        newBlockId = getBlockName()
+        newblockLevel = getBlockLevel()
         
-        print (f"Looping between {blockId} and {newBlockId}")
-        if blockId != newBlockId:
+        print (f"Looping between {blockLevel} and {newblockLevel}")
+        if blockLevel != newblockLevel:
             try:          
-                processBlock(newBlockId, pg_pool)
+                processBlock(newblockLevel, pg_pool)
             except Exception as err:
-                print (f"Cannot process block: {blockId}, skipping it, because of exception", err)                
+                print (f"Cannot process block: {blockLevel}, skipping it, because of exception", err)                
 
 
-        blockId = newBlockId
+        blockLevel = newblockLevel
 
 
     return
 
-    txCount = getBlockTxCount(blockId)
+    txCount = getBlockTxCount()
     txCount = int(txCount, 16)
-    print (f"Tx Count in block {blockId}: {txCount}")    
+    print (f"Tx Count in block {blockLevel}: {txCount}")    
 
-    txRecords = getAllTxRecords(blockId)
+    txRecords = getAllTxRecords(blockLevel)
     print (f"Tx records: {txRecords}")
 
 
