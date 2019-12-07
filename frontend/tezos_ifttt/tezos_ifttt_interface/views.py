@@ -178,6 +178,7 @@ def ifttt_launch(request):
 	action_id = request.POST["action_id"]
 	action_input_array = json.loads(request.POST["action_input_array"])
 	trigger_data = ifttt_tezos_triggers[trigger_id]
+	market_activity_target_direction = request.POST["market_activity_target_direction"]
 
 	# Enter data into trigger_data and action_data
 	if trigger_id == "baking_endorsement_rewards":
@@ -191,12 +192,15 @@ def ifttt_launch(request):
 
 	if trigger_id == "xtz_market_price":
 		trigger_data["trigger_data"]["price"] = wallet_address
+		trigger_data["trigger_data"]["direction"] = market_activity_target_direction
 
 	if trigger_id == "xtz_market_volume":
 		trigger_data["trigger_data"]["volume"] = wallet_address
+		trigger_data["trigger_data"]["direction"] = market_activity_target_direction
 
 	if trigger_id == "xtz_market_cap":
 		trigger_data["trigger_data"]["market_cap"] = wallet_address
+		trigger_data["trigger_data"]["direction"] = market_activity_target_direction
 
 	if trigger_id == "xtz_contract_deposits":
 		trigger_data["trigger_data"]["contract_address"] = wallet_address
