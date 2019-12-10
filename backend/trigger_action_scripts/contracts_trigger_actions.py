@@ -17,12 +17,12 @@ def getBlockLevel():
     result = requests.get(url)
     return result.json()["header"]["level"]
 
-def getBlockTxCount():
+def getBlockOperationCount():
     url = 'https://node.tezosapi.com/chains/main/blocks/head'
     result = requests.get(url)
     return len(result.json()['operations'][0])
 
-def getAllTxRecords(blockNum):
+def getAllOperationRecords(blockNum):
     txRecords = []
     
     url = 'https://api.tezos.id/mooncake/mainnet/v1/transactions?a=kt&n=20'
@@ -38,7 +38,7 @@ def getAllTxRecords(blockNum):
 
 def processBlock(blockLevel, pool):
     print (blockLevel)
-    txList = getAllTxRecords(blockLevel)
+    txList = getAllOperationRecords(blockLevel)
     print (txList)
     simpleTxList = [(x['source'].lower(), x['destination'].lower(), x['amount'], x['blockHash'].lower()) for x in txList]
     print ("SIMPLE LIST")
@@ -304,11 +304,11 @@ def main_real():
         time.sleep(60)  # Sleep for 60 second
     return
 
-    txCount = getBlockTxCount()
+    txCount = getBlockOperationCount()
     txCount = int(txCount, 16)
     print (f"Tx Count in block {blockLevel}: {txCount}")    
 
-    txRecords = getAllTxRecords(blockLevel)
+    txRecords = getAllOperationRecords(blockLevel)
     print (f"Tx records: {txRecords}")
 
 if __name__ == "__main__":
