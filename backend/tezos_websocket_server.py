@@ -14,6 +14,11 @@ def getBlockLevel():
     result = requests.get(url)
     return result.json()["header"]["level"]
 
+def getBlockTimestamp():
+    url = 'https://node.tezosapi.com/chains/main/blocks/head'
+    result = requests.get(url)
+    return result.json()["header"]["timestamp"]
+
 def getAllTxRecords():
     txRecords = []
     
@@ -38,20 +43,28 @@ async def handler(websocket, path):
         # Loop on that baker, outputting general baker info, operation data pertaining to baker
         async with aiohttp.ClientSession() as session:
             
+            catchUp = False
             blockLevel = getBlockLevel()
             print (f"Current block: {blockLevel}")
 
             while True:
 
-                newblockLevel = getBlockLevel()
-                if blockLevel != newblockLevel:
+                newBlockLevel = getBlockLevel()
+                if blockLevel != newBlockLevel:
                     try: 
 
+                        # If catching up to latest block, use blockLevel. Otherwise, use newBlockLevel.
+                        blockLevelUsed = newBlockLevel
+                        if catchUp:
+                            blockLevelUsed = blockLevel
+
                         # Retrieve and pass along the general delegate info (as JSON string)
-                        async with session.get('http://node.tezosapi.com/chains/main/blocks/head/context/delegates/'+bakerAddress) as resp:
+                        async with session.get('http://node.tezosapi.com/chains/main/blocks/'+str(blockLevelUsed)+'/context/delegates/'+bakerAddress) as resp:
                             respData = await resp.json()
                             del respData["frozen_balance_by_cycle"]
                             del respData["delegated_contracts"]
+                            respData["block_level"] = blockLevelUsed
+                            respData["timestamp"] = getBlockTimestamp()
                             await websocket.send(json.dumps(respData))
 
                         
@@ -59,11 +72,19 @@ async def handler(websocket, path):
                         operations = getAllTxRecords()
                         for tx in operations:
                             if tx["delegate"] == bakerAddress:
+                                tx["block_level"] = blockLevelUsed
+                                tx["timestamp"] = getBlockTimestamp()
                                 await websocket.send((json.dumps(tx)))
                     except Exception as err:
                         print (f"Cannot process block: {blockLevel}, skipping it, because of exception", err)                
-
-                blockLevel = newblockLevel
+                
+                # Catch up to latest block, if (newBlockLevel > (blockLevel + 1))
+                if newBlockLevel > (blockLevel + 1):
+                    blockLevel = blockLevel + 1
+                    catchUp = True
+                else:
+                    blockLevel = newBlockLevel
+                    catchUp = False
 
                 # Sleep between updates
                 await asyncio.sleep(sleepBetweenUpdatesInSeconds)
