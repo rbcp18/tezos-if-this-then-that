@@ -19,7 +19,7 @@ def getBlockTimestamp():
     result = requests.get(url)
     return result.json()["header"]["timestamp"]
 
-def getAllTxRecords():
+def getAllOperationRecords():
     txRecords = []
     
     url = 'https://node.tezosapi.com/chains/main/blocks/head'
@@ -69,7 +69,7 @@ async def handler(websocket, path):
 
                         
                         # Retrieve and pass along the operation info for this particular baker on block (as JSON string).
-                        operations = getAllTxRecords()
+                        operations = getAllOperationRecords()
                         for tx in operations:
                             if tx["delegate"] == bakerAddress:
                                 tx["block_level"] = blockLevelUsed
