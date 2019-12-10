@@ -6,15 +6,19 @@ postgreSQL_pool = psycopg2.pool.SimpleConnectionPool(1, 20, host="",database="",
 postgres_conn  = postgreSQL_pool.getconn()
 
 def lambda_handler(event, context):
-	id_triggers_actions = event['id']
+	id_tag = event['id']
 	try:
 		cur = postgres_conn.cursor()
 
-		#update trigger
-		sql = 'UPDATE triggers_actions SET active = FALSE WHERE id = '+str(id_triggers_actions)+';'
+		#update trigger with uuid
+		sql = 'UPDATE triggers_actions SET active = FALSE WHERE unique_id = \''+str(id_tag)+'\';'
 		cur.execute(sql)
 		postgres_conn.commit()
+		
+		#close database
 		cur.close()
+
+
 	except (Exception, psycopg2.DatabaseError) as error:
 			print(error)
 	finally:

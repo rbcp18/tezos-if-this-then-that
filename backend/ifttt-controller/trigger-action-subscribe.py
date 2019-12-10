@@ -34,17 +34,20 @@ def lambda_handler(event, context):
 			action_id = cur.fetchone()[0]
 			action_ids.append(action_id)
 
-			sql = 'INSERT INTO triggers_actions ("trigger_id", "action_id") VALUES (\''+str(trigger_id)+'\', \''+str(action_id)+'\') RETURNING id;'
+			# Generate a random uuid
+			unique_id = uuid.uuid4()
+
+			sql = 'INSERT INTO triggers_actions ("trigger_id", "action_id", "unique_id") VALUES (\''+str(trigger_id)+'\', \''+str(action_id)+'\', \''+str(unique_id)+'\') RETURNING id;'
 			cur.execute(sql)
 			id_trigger_action = cur.fetchone()[0]
 
-			trigger_actions.append({"TRIGGER-ACTION-ID":id_trigger_action})
+			trigger_actions.append({"TRIGGER-ACTION-ID":str(unique_id)}) #updating to unique_id
 
 			#send requests email
 			url = 'LAMBDA-SEND-TRIGGER-EMAIL-URL'
 			method = 'POST'
 			params = {}
-			trigger["trigger_data"]['id_trigger_action'] = str(id_trigger_action)
+			trigger["trigger_data"]['id_trigger_action'] = str(unique_id) #updating to unique_id
 			print (str(trigger["trigger_data"]))
 			
 			action_type_main = "Notifications"
