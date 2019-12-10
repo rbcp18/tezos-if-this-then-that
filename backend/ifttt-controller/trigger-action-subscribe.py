@@ -1,361 +1,136 @@
-# -*- coding: utf-8 -*-
-import json, requests
+import json, requests, decimal, uuid, psycopg2
+from psycopg2 import pool
+import boto3
+
+schema = 'public'
+postgreSQL_pool = psycopg2.pool.SimpleConnectionPool(1, 20, host="",database="", user="", password="", port="", options=f'-c search_path={schema}',)
+postgres_conn  = postgreSQL_pool.getconn()
 
 def lambda_handler(event, context):
-	event_body = json.loads(event['body'])
-	send_template_message(event_body['to_name'], event_body['to_email'], event_body['subject'], event_body['text_line'], event_body['main_title'], event_body['trigger_text'], event_body['action_text'], event_body['id_trigger_action'])
-	return {'action':'complete'}
+	trigger = event['trigger']
+	actions = event['actions']
+	
+	trigger_actions = []
 
-def send_template_message(to_name, to_email, subject, text_line, main_title, trigger_text, action_text, id_trigger_action):
-	return requests.post(
-		"https://api.mailgun.net/v3/<YOUR-EMAIL>/messages",
-		auth=("api", "MAILGUN-API"),
-		data={"from": "FROM-EMAIL",
-			"to": to_name + "<"+to_email+">",
-			"subject": subject,
-			"text":  text_line,
-			"html": """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml">
-<head>
-<!--[if gte mso 9]><xml><o:OfficeDocumentSettings><o:AllowPNG/><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
-<meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
-<meta content="width=device-width" name="viewport"/>
-<!--[if !mso]><!-->
-<meta content="IE=edge" http-equiv="X-UA-Compatible"/>
-<!--<![endif]-->
-<title></title>
-<!--[if !mso]><!-->
-<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css"/>
-<!--<![endif]-->
-<style type="text/css">
-		body {
-			margin: 0;
-			padding: 0;
-		}
+	#post to postgres
+	try:
+		cur = postgres_conn.cursor()
 
-		table,
-		td,
-		tr {
-			vertical-align: top;
-			border-collapse: collapse;
-		}
+		#insert trigger
+		if "wallet_address" in trigger["trigger_data"]:
+			wallet_address_lower = str(trigger["trigger_data"]["wallet_address"]).lower()
+			trigger["trigger_data"]["wallet_address"] = wallet_address_lower
+		
+		sql = 'INSERT INTO triggers ("trigger_type", "trigger_subtype", "data") VALUES (\''+str(trigger["trigger_type"])+'\', \''+trigger["trigger_subtype"]+'\', \''+str(trigger["trigger_data"]).replace("'",'"')+'\') RETURNING id;'
+		cur.execute(sql)
+		trigger_id = cur.fetchone()[0]
+		
+		#insert action
+		action_ids = []
 
-		* {
-			line-height: inherit;
-		}
+		for action in actions:
+			sql = 'INSERT INTO actions ("action_type", "action_subtype", "data") VALUES (\''+action["action_type"]+'\', \''+action["action_subtype"]+'\', \''+str(action["action_data"]).replace("'",'"')+'\') RETURNING id;'
+			cur.execute(sql)
+			action_id = cur.fetchone()[0]
+			action_ids.append(action_id)
 
-		a[x-apple-data-detectors=true] {
-			color: inherit !important;
-			text-decoration: none !important;
-		}
-	</style>
-<style id="media-query" type="text/css">
-		@media (max-width: 620px) {
+			sql = 'INSERT INTO triggers_actions ("trigger_id", "action_id") VALUES (\''+str(trigger_id)+'\', \''+str(action_id)+'\') RETURNING id;'
+			cur.execute(sql)
+			id_trigger_action = cur.fetchone()[0]
 
-			.block-grid,
-			.col {
-				min-width: 0px !important;
-				max-width: 100% !important;
-				display: block !important;
-			}
+			trigger_actions.append({"TRIGGER-ACTION-ID":id_trigger_action})
 
-			.block-grid {
-				width: 100% !important;
-			}
+			#send requests email
+			url = 'LAMBDA-SEND-TRIGGER-EMAIL-URL'
+			method = 'POST'
+			params = {}
+			trigger["trigger_data"]['id_trigger_action'] = str(id_trigger_action)
+			print (str(trigger["trigger_data"]))
+			
+			action_type_main = "Notifications"
+			action_subtype_main = "email"
+			action_data_main_endpoint = action['action_data']['email']
+			
+			if action["action_type"] == "webhook" and action["action_subtype"] == "json":
+				action_type_main = "JSON to Webhook"
+				action_subtype_main = "JSON response"
+				action_data_main_endpoint = action['action_data']['webhook']
+			
+			elif action["action_type"] == "webhook" and action["action_subtype"] == "rpc":
+				action_type_main = "RPC Operation to Webhook"
+				action_subtype_main = "RPC "+action['action_data']['function']["name"].replace("_"," ")+" response"
+				action_data_main_endpoint = action['action_data']['webhook']
+				
+			elif action["action_type"] == "webhook" and action["action_subtype"] == "api_actions":
+				action_type_main = "Send API Response to Webhook"
+				action_subtype_main = "API Response From "+action['action_data']['api_function']["url"]+action['action_data']['api_function']["path"]
+				action_data_main_endpoint = action['action_data']['webhook']
+				
+			elif action["action_type"] == "webhook" and action["action_subtype"] == "google_sheets":
+				action_type_main = "Send Google Sheet Data"
+				action_subtype_main = "Google Sheet Data From "+action['action_data']['sheets_data']["spreadsheetId"]+":"+action['action_data']['sheets_data']["sheetName"]+":"+action['action_data']['sheets_data']["rows"]
+				if action['action_data']['webhook'] != "":
+					action_data_main_endpoint = action['action_data']['webhook']
+				else:
+					action_data_main_endpoint = action['action_data']['email']
+			
+			if trigger["trigger_subtype"] == "baking_event" and trigger['trigger_data']['coin'].upper() == "XTZ":
+				body = { "to_name": "", "to_email": action['action_data']['email'], "subject": "Connected: "+trigger['trigger_data']['chain'].capitalize()+" Baking Endorsement "+action_type_main, "text_line": "Connected: "+trigger['trigger_data']['chain'].capitalize()+" Baking Endorsement "+action_type_main, "main_title": trigger['trigger_data']['chain'].capitalize()+" Baking Endorsement "+action_type_main, "trigger_text": trigger['trigger_data']['chain'].capitalize()+" Block Endorsement by "+trigger['trigger_data']['delegate_address'], "action_text": "send "+action_subtype_main+" to "+action_data_main_endpoint, "id_trigger_action": trigger["trigger_data"]['id_trigger_action'] }
+				api_call_return = api_cal(url, method, params, body)
+				
+			elif trigger["trigger_subtype"] == "delegation_event" and trigger['trigger_data']['coin'].upper() == "XTZ":
+				body = { "to_name": "", "to_email": action['action_data']['email'], "subject": "Connected: "+trigger['trigger_data']['chain'].capitalize()+" Delegation "+action_type_main, "text_line": "Connected: "+trigger['trigger_data']['chain'].capitalize()+" Delegation "+action_type_main, "main_title": trigger['trigger_data']['chain'].capitalize()+" Delegation "+action_type_main, "trigger_text": trigger['trigger_data']['chain'].capitalize()+" Block Contains Delegation by "+trigger['trigger_data']['delegator_address'], "action_text": "send "+action_subtype_main+" to "+action_data_main_endpoint, "id_trigger_action": trigger["trigger_data"]['id_trigger_action'] }
+				api_call_return = api_cal(url, method, params, body) 
+				
+			elif trigger["trigger_subtype"] == "volume" and trigger['trigger_data']['coin'].upper() == "XTZ":
+				body = { "to_name": "", "to_email": action['action_data']['email'], "subject": "Connected: "+trigger['trigger_data']['coin'].upper()+" Volume "+action_type_main, "text_line": "Connected: "+trigger['trigger_data']['coin'].upper()+" Volume "+action_type_main, "main_title": trigger['trigger_data']['coin'].upper()+" Volume "+action_type_main, "trigger_text": trigger['trigger_data']['coin'].upper()+" 24 Hour Volume Above $"+'{0:,.2f}'.format(float(trigger['trigger_data']['volume'])), "action_text": "send "+action_subtype_main+" to "+action_data_main_endpoint, "id_trigger_action": trigger["trigger_data"]['id_trigger_action'] }
+				api_call_return = api_cal(url, method, params, body)
+				
+			elif trigger["trigger_subtype"] == "proposal" and trigger['trigger_data']['coin'].upper() == "XTZ":
+				body = { "to_name": "", "to_email": action['action_data']['email'], "subject": "Connected: "+trigger['trigger_data']['chain'].capitalize()+" New Governance Proposals "+action_type_main, "text_line": "Connected: "+trigger['trigger_data']['chain'].capitalize()+" New Governance Proposals "+action_type_main, "main_title": trigger['trigger_data']['chain'].capitalize()+" New Governance Proposals "+action_type_main, "trigger_text": trigger['trigger_data']['chain'].capitalize()+" New Governance Proposal", "action_text": "send "+action_subtype_main+" to "+action_data_main_endpoint, "id_trigger_action": trigger["trigger_data"]['id_trigger_action'] }
+				api_call_return = api_cal(url, method, params, body)
+				
+			elif trigger["trigger_subtype"] == "contract_deposit" and trigger['trigger_data']['coin'].upper() == "XTZ":
+				body = { "to_name": "", "to_email": action['action_data']['email'], "subject": "Connected: "+trigger['trigger_data']['chain'].capitalize()+" Contract XTZ Deposit "+action_type_main, "text_line": "Connected: "+trigger['trigger_data']['chain'].capitalize()+" Contract XTZ Deposit "+action_type_main, "main_title": trigger['trigger_data']['chain'].capitalize()+" Contract XTZ Deposit "+action_type_main, "trigger_text": trigger['trigger_data']['chain'].capitalize()+" Contract XTZ Deposit", "action_text": "send "+action_subtype_main+" to "+action_data_main_endpoint, "id_trigger_action": trigger["trigger_data"]['id_trigger_action'] }
+				api_call_return = api_cal(url, method, params, body)
+				
+			elif trigger["trigger_subtype"] == "market_cap" and trigger['trigger_data']['coin'].upper() == "XTZ":
+				body = { "to_name": "", "to_email": action['action_data']['email'], "subject": "Connected: "+trigger['trigger_data']['coin'].upper()+" Market Cap "+action_type_main, "text_line": "Connected: "+trigger['trigger_data']['coin'].upper()+" Market Cap "+action_type_main, "main_title": trigger['trigger_data']['coin'].upper()+" Market Cap "+action_type_main, "trigger_text": trigger['trigger_data']['coin'].upper()+" Market Cap Above $"+'{0:,.2f}'.format(float(trigger['trigger_data']['market_cap'])), "action_text": "send "+action_subtype_main+" to "+action_data_main_endpoint, "id_trigger_action": trigger["trigger_data"]['id_trigger_action'] }
+				api_call_return = api_cal(url, method, params, body)
+				
+			elif trigger["trigger_subtype"] == "pricing" and trigger['trigger_data']['coin'].upper() == "XTZ":
+				body = { "to_name": "", "to_email": action['action_data']['email'], "subject": "Connected: "+trigger['trigger_data']['coin'].upper()+" Last Price Trade "+action_type_main, "text_line": "Connected: "+trigger['trigger_data']['coin'].upper()+" Last Price Trade "+action_type_main, "main_title": trigger['trigger_data']['coin'].upper()+" Last Price Trade "+action_type_main, "trigger_text": trigger['trigger_data']['coin'].upper()+" last price is "+trigger['trigger_data']['direction']+" $"+'{0:,.2f}'.format(float(trigger['trigger_data']['price'])), "action_text": "send "+action_subtype_main+" to "+action_data_main_endpoint, "id_trigger_action": trigger["trigger_data"]['id_trigger_action'] }
+				api_call_return = api_cal(url, method, params, body)
+				
+			elif trigger["trigger_subtype"] == "coin_leaves" and trigger['trigger_data']['coin'].upper() == "XTZ":
+				body = { "to_name": "", "to_email": action['action_data']['email'], "subject": "Connected: "+trigger['trigger_data']['coin'].upper()+" Wallet "+action_type_main, "text_line": "Connected: "+trigger['trigger_data']['coin'].upper()+" Wallet "+action_type_main, "main_title": trigger['trigger_data']['coin'].upper()+" Wallet "+action_type_main, "trigger_text": trigger['trigger_data']['coin'].upper()+" Sent From "+trigger['trigger_data']['wallet_address'], "action_text": "send "+action_subtype_main+" to "+action_data_main_endpoint, "id_trigger_action": trigger["trigger_data"]['id_trigger_action'] }
+				api_call_return = api_cal(url, method, params, body)
+				
+			elif trigger["trigger_subtype"] == "coin_enters" and trigger['trigger_data']['coin'].upper() == "XTZ":
+				body = { "to_name": "", "to_email": action['action_data']['email'], "subject": "Connected: "+trigger['trigger_data']['coin'].upper()+" Wallet "+action_type_main, "text_line": "Connected: "+trigger['trigger_data']['coin'].upper()+" Wallet "+action_type_main, "main_title": trigger['trigger_data']['coin'].upper()+" Wallet "+action_type_main, "trigger_text": trigger['trigger_data']['coin'].upper()+" Received By "+trigger['trigger_data']['wallet_address'], "action_text": "send "+action_subtype_main+" to "+action_data_main_endpoint, "id_trigger_action": trigger["trigger_data"]['id_trigger_action'] }
+				api_call_return = api_cal(url, method, params, body)
 
-			.col {
-				width: 100% !important;
-			}
+			elif action["action_type"] == "notification" and action["action_subtype"] == "send_email" and trigger["trigger_type"] == "wallet":
+				body = { "to_name": "", "to_email": action['action_data']['email'], "blockchain":trigger['trigger_data']['coin'], "trigger": trigger['trigger_subtype'], "data":str(trigger["trigger_data"]) }
+				api_call_return = api_cal(url, method, params, body)
+			
+			# add action inition for webhook
+			if action["action_type"] == "webhook" and action['action_data']['webhook'] != "":
+				url = action_data_main_endpoint
+				body = {"dataJson":"initialized"}
+				r = requests.post(url = url, params = params, data = body)
+				print (r.json())
 
-			.col>div {
-				margin: 0 auto;
-			}
+		postgres_conn.commit()
+		cur.close()
+	except (Exception, psycopg2.DatabaseError) as error:
+			print(error)
+	finally:
+		print ('finally')
+	
+	return trigger_actions
 
-			img.fullwidth,
-			img.fullwidthOnMobile {
-				max-width: 100% !important;
-			}
-
-			.no-stack .col {
-				min-width: 0 !important;
-				display: table-cell !important;
-			}
-
-			.no-stack.two-up .col {
-				width: 50% !important;
-			}
-
-			.no-stack .col.num4 {
-				width: 33% !important;
-			}
-
-			.no-stack .col.num8 {
-				width: 66% !important;
-			}
-
-			.no-stack .col.num4 {
-				width: 33% !important;
-			}
-
-			.no-stack .col.num3 {
-				width: 25% !important;
-			}
-
-			.no-stack .col.num6 {
-				width: 50% !important;
-			}
-
-			.no-stack .col.num9 {
-				width: 75% !important;
-			}
-
-			.video-block {
-				max-width: none !important;
-			}
-
-			.mobile_hide {
-				min-height: 0px;
-				max-height: 0px;
-				max-width: 0px;
-				display: none;
-				overflow: hidden;
-				font-size: 0px;
-			}
-
-			.desktop_hide {
-				display: block !important;
-				max-height: none !important;
-			}
-			.mobile_condense {
-				width:90%;
-				margin-left: auto;
-				margin-right: auto;
-			}
-		}
-	</style>
-</head>
-<body class="clean-body" style="margin: 0; padding: 0; -webkit-text-size-adjust: 100%; background-color: #156bd2;">
-<!--[if IE]><div class="ie-browser"><![endif]-->
-<table bgcolor="#156bd2" cellpadding="0" cellspacing="0" class="nl-container" role="presentation" style="table-layout: fixed; vertical-align: top; min-width: 320px; Margin: 0 auto; border-spacing: 0; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #156bd2; width: 100%;" valign="top" width="100%">
-<tbody>
-<tr style="vertical-align: top;" valign="top">
-<td style="word-break: break-word; vertical-align: top;" valign="top">
-<!--[if (mso)|(IE)]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="background-color:#156bd2"><![endif]-->
-<div style="background-color:transparent;" class="mobile_condense">
-<div class="block-grid" style="Margin: 0 auto; min-width: 320px; max-width: 600px; overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; background-color: transparent;">
-<div style="border-collapse: collapse;display: table;width: 100%;background-color:transparent;">
-<!--[if (mso)|(IE)]><table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:transparent;"><tr><td align="center"><table cellpadding="0" cellspacing="0" border="0" style="width:600px"><tr class="layout-full-width" style="background-color:transparent"><![endif]-->
-<!--[if (mso)|(IE)]><td align="center" width="600" style="background-color:transparent;width:600px; border-top: 0px solid transparent; border-left: 0px solid transparent; border-bottom: 0px solid transparent; border-right: 0px solid transparent;" valign="top"><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right: 0px; padding-left: 0px; padding-top:5px; padding-bottom:0px;"><![endif]-->
-<div class="col num12" style="min-width: 320px; max-width: 600px; display: table-cell; vertical-align: top; width: 600px;">
-<div style="width:100% !important;">
-<!--[if (!mso)&(!IE)]><!-->
-<div style="border-top:0px solid transparent; border-left:0px solid transparent; border-bottom:0px solid transparent; border-right:0px solid transparent; padding-top:5px; padding-bottom:0px; padding-right: 0px; padding-left: 0px;">
-<!--<![endif]-->
-<div align="center" class="img-container center autowidth fullwidth" style="padding-right: 0px;padding-left: 0px;">
-<!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr style="line-height:0px"><td style="padding-right: 0px;padding-left: 0px;" align="center"><![endif]-->
-<div style="font-size:1px;line-height:25px"> </div><img align="center" alt="Image" border="0" class="center autowidth fullwidth" src="YOUR-LOGO" style="text-decoration: none; -ms-interpolation-mode: bicubic; border: 0; height: auto; width: 100%; max-width: 600px; display: block;" title="Image" width="600"/>
-<!--[if mso]></td></tr></table><![endif]-->
-</div>
-<!--[if (!mso)&(!IE)]><!-->
-</div>
-<!--<![endif]-->
-</div>
-</div>
-<!--[if (mso)|(IE)]></td></tr></table><![endif]-->
-<!--[if (mso)|(IE)]></td></tr></table></td></tr></table><![endif]-->
-</div>
-</div>
-</div>
-<div style="background-color:transparent;" class="mobile_condense">
-<div class="block-grid" style="Margin: 0 auto; min-width: 320px; max-width: 600px; overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; background-color: #FFFFFF;">
-<div style="border-collapse: collapse;display: table;width: 100%;background-color:#FFFFFF;">
-<!--[if (mso)|(IE)]><table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:transparent;"><tr><td align="center"><table cellpadding="0" cellspacing="0" border="0" style="width:600px"><tr class="layout-full-width" style="background-color:#FFFFFF"><![endif]-->
-<!--[if (mso)|(IE)]><td align="center" width="600" style="background-color:#FFFFFF;width:600px; border-top: 0px solid transparent; border-left: 0px solid transparent; border-bottom: 0px solid transparent; border-right: 0px solid transparent;" valign="top"><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right: 0px; padding-left: 0px; padding-top:5px; padding-bottom:5px;"><![endif]-->
-<div class="col num12" style="min-width: 320px; max-width: 600px; display: table-cell; vertical-align: top; width: 600px;">
-<div style="width:100% !important;">
-<!--[if (!mso)&(!IE)]><!-->
-<div style="border-top:0px solid transparent; border-left:0px solid transparent; border-bottom:0px solid transparent; border-right:0px solid transparent; padding-top:5px; padding-bottom:5px; padding-right: 0px; padding-left: 0px;">
-<!--<![endif]-->
-<div align="center" class="img-container center fixedwidth" style="padding-right: 0px;padding-left: 0px;">
-<!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr style="line-height:0px"><td style="padding-right: 0px;padding-left: 0px;" align="center"><![endif]--><img align="center" alt="Image" border="0" class="center fixedwidth" src="YOUR-LOGO" style="text-decoration: none; -ms-interpolation-mode: bicubic; border: 0; height: auto; width: 90%; max-width: 360px; display: block;" title="Image" width="360"/>
-<!--[if mso]></td></tr></table><![endif]-->
-</div>
-<!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right: 10px; padding-left: 10px; padding-top: 10px; padding-bottom: 10px; font-family: 'Trebuchet MS', Tahoma, sans-serif"><![endif]-->
-<div style="color:#555555;font-family:'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif;line-height:150%;padding-top:10px;padding-right:10px;padding-bottom:10px;padding-left:10px;">
-<div style="font-size: 12px; line-height: 18px; font-family: 'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif; color: #555555;">
-<p style="font-size: 14px; line-height: 21px; text-align: center; margin: 0;"><span style="font-size: 14px; line-height: 21px;">Blockchain's Leading Trigger and Event Platform</span></p>
-</div>
-</div>
-<!--[if mso]></td></tr></table><![endif]-->
-<!--[if (!mso)&(!IE)]><!-->
-</div>
-<!--<![endif]-->
-</div>
-</div>
-<!--[if (mso)|(IE)]></td></tr></table><![endif]-->
-<!--[if (mso)|(IE)]></td></tr></table></td></tr></table><![endif]-->
-</div>
-</div>
-</div>
-<div style="background-color:transparent;" class="mobile_condense">
-<div class="block-grid" style="Margin: 0 auto; min-width: 320px; max-width: 600px; overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; background-color: #FFFFFF;">
-<div style="border-collapse: collapse;display: table;width: 100%;background-color:#FFFFFF;">
-<!--[if (mso)|(IE)]><table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:transparent;"><tr><td align="center"><table cellpadding="0" cellspacing="0" border="0" style="width:600px"><tr class="layout-full-width" style="background-color:#FFFFFF"><![endif]-->
-<!--[if (mso)|(IE)]><td align="center" width="600" style="background-color:#FFFFFF;width:600px; border-top: 0px solid transparent; border-left: 0px solid transparent; border-bottom: 0px solid transparent; border-right: 0px solid transparent;" valign="top"><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right: 0px; padding-left: 0px; padding-top:0px; padding-bottom:5px;"><![endif]-->
-<div class="col num12" style="min-width: 320px; max-width: 600px; display: table-cell; vertical-align: top; width: 600px;">
-<div style="width:100% !important;">
-<!--[if (!mso)&(!IE)]><!-->
-<div style="border-top:0px solid transparent; border-left:0px solid transparent; border-bottom:0px solid transparent; border-right:0px solid transparent; padding-top:0px; padding-bottom:5px; padding-right: 0px; padding-left: 0px;">
-<!--<![endif]-->
-<!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right: 10px; padding-left: 10px; padding-top: 10px; padding-bottom: 10px; font-family: 'Trebuchet MS', Tahoma, sans-serif"><![endif]-->
-<div style="color:#0D0D0D;font-family:'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif;line-height:120%;padding-top:10px;padding-right:10px;padding-bottom:10px;padding-left:10px;">
-<div style="font-size: 12px; line-height: 14px; font-family: 'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif; color: #0D0D0D;">
-<p style="font-size: 14px; line-height: 33px; text-align: center; margin: 0;"><span style="font-size: 28px;"><strong><span style="line-height: 33px; font-size: 28px;">"""+main_title+"""</span></strong></span><br/><span style="font-size: 28px; line-height: 33px;">Connection Completed</span></p>
-</div>
-</div>
-<!--[if mso]></td></tr></table><![endif]-->
-<!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right: 10px; padding-left: 10px; padding-top: 10px; padding-bottom: 10px; font-family: 'Trebuchet MS', Tahoma, sans-serif"><![endif]-->
-<div style="color:#555555;font-family:'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif;line-height:150%;padding-top:10px;padding-right:10px;padding-bottom:10px;padding-left:10px;">
-<div style="font-size: 12px; line-height: 18px; font-family: 'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif; color: #555555;">
-<p style="font-size: 14px; line-height: 21px; text-align: center; margin: 0;"><span style="font-size: 14px; line-height: 21px;"><span style="color: #000000; font-size: 14px; line-height: 21px;"><span style="font-size: 14px; line-height: 21px;"><strong>Trigger</strong></span>:</span> If """+trigger_text+""" </span></p>
-<p style="font-size: 14px; line-height: 21px; text-align: center; margin: 0;"><span style="font-size: 14px; line-height: 21px;"><span style="color: #000000; font-size: 14px; line-height: 21px;"><span style="font-size: 14px; line-height: 21px;"><strong>Action</strong></span>:</span> Then, """+action_text+"""</span><span style="color: #a8bf6f; font-size: 14px; line-height: 21px;"><strong><br/></strong></span></p>
-</div>
-</div>
-<!--[if mso]></td></tr></table><![endif]-->
-<!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right: 10px; padding-left: 10px; padding-top: 20px; padding-bottom: 10px; font-family: 'Trebuchet MS', Tahoma, sans-serif"><![endif]-->
-<div style="color:#0D0D0D;font-family:'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif;line-height:150%;padding-top:20px;padding-right:10px;padding-bottom:10px;padding-left:10px;">
-<div style="font-size: 12px; line-height: 18px; font-family: 'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif; color: #0D0D0D;">
-<p style="font-size: 14px; line-height: 15px; text-align: center; margin: 0;"><span style="font-size: 10px;">If you did not sign up for this trigger, unsubscribe below.</span></p>
-</div>
-</div>
-<!--[if mso]></td></tr></table><![endif]-->
-<!--[if (!mso)&(!IE)]><!-->
-</div>
-<!--<![endif]-->
-</div>
-</div>
-<!--[if (mso)|(IE)]></td></tr></table><![endif]-->
-<!--[if (mso)|(IE)]></td></tr></table></td></tr></table><![endif]-->
-</div>
-</div>
-</div>
-<div style="background-color:transparent;" class="mobile_condense">
-<div class="block-grid three-up" style="Margin: 0 auto; min-width: 320px; max-width: 600px; overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; background-color: #fff;">
-<div style="border-collapse: collapse;display: table;width: 100%;background-color:#fff;">
-<!--[if (mso)|(IE)]><table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:transparent;"><tr><td align="center"><table cellpadding="0" cellspacing="0" border="0" style="width:600px"><tr class="layout-full-width" style="background-color:#fff"><![endif]-->
-<!--[if (mso)|(IE)]><td align="center" width="200" style="background-color:#fff;width:200px; border-top: 0px solid transparent; border-left: 0px solid transparent; border-bottom: 0px solid transparent; border-right: 0px solid transparent;" valign="top"><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right: 0px; padding-left: 0px; padding-top:0px; padding-bottom:0px;"><![endif]-->
-<div class="col num4" style="max-width: 320px; min-width: 200px; display: table-cell; vertical-align: top; width: 200px;">
-<div style="width:100% !important;">
-<!--[if (!mso)&(!IE)]><!-->
-<div style="border-top:0px solid transparent; border-left:0px solid transparent; border-bottom:0px solid transparent; border-right:0px solid transparent; padding-top:0px; padding-bottom:0px; padding-right: 0px; padding-left: 0px;">
-<!--<![endif]-->
-<table cellpadding="0" cellspacing="0" class="social_icons" role="presentation" style="table-layout: fixed; vertical-align: top; border-spacing: 0; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;" valign="top" width="100%">
-<tbody>
-<tr style="vertical-align: top;" valign="top">
-<td style="word-break: break-word; vertical-align: top; padding-top: 15px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px;" valign="top">
-<table activate="activate" align="center" alignment="alignment" cellpadding="0" cellspacing="0" class="social_table" role="presentation" style="table-layout: fixed; vertical-align: top; border-spacing: 0; border-collapse: undefined; mso-table-tspace: 0; mso-table-rspace: 0; mso-table-bspace: 0; mso-table-lspace: 0;" to="to" valign="top">
-<tbody>
-<tr align="center" style="vertical-align: top; display: inline-block; text-align: center;" valign="top">
-<td style="word-break: break-word; vertical-align: top; padding-bottom: 5px; padding-right: 3px; padding-left: 3px;" valign="top"><a href="YOUR-TWITTER" target="_blank"><img alt="Twitter" height="32" src="YOUR-LOGO" style="text-decoration: none; -ms-interpolation-mode: bicubic; height: auto; border: none; display: block;" title="Twitter" width="32"/></a></td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-</tbody>
-</table>
-<!--[if (!mso)&(!IE)]><!-->
-</div>
-<!--<![endif]-->
-</div>
-</div>
-<!--[if (mso)|(IE)]></td></tr></table><![endif]-->
-<!--[if (mso)|(IE)]></td><td align="center" width="200" style="background-color:#fff;width:200px; border-top: 0px solid transparent; border-left: 0px solid transparent; border-bottom: 0px solid transparent; border-right: 0px solid transparent;" valign="top"><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right: 0px; padding-left: 0px; padding-top:5px; padding-bottom:5px;"><![endif]-->
-<div class="col num4" style="max-width: 320px; min-width: 200px; display: table-cell; vertical-align: top; width: 200px;">
-<div style="width:100% !important;">
-<!--[if (!mso)&(!IE)]><!-->
-<div style="border-top:0px solid transparent; border-left:0px solid transparent; border-bottom:0px solid transparent; border-right:0px solid transparent; padding-top:5px; padding-bottom:5px; padding-right: 0px; padding-left: 0px;">
-<!--<![endif]-->
-<!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right: 0px; padding-left: 0px; padding-top: 20px; padding-bottom: 0px; font-family: 'Trebuchet MS', Tahoma, sans-serif"><![endif]-->
-<div style="color:#156bd2;font-family:'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif;line-height:120%;padding-top:20px;padding-right:0px;padding-bottom:0px;padding-left:0px;">
-<div style="font-size: 12px; line-height: 14px; font-family: 'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif; color: #156bd2;">
-<p style="font-size: 12px; line-height: 14px; text-align: center; margin: 0;"><span style="color: #333333; font-size: 12px; line-height: 14px;">Email: </span><span style="color: #156bd2; font-size: 12px; line-height: 14px;">YOUR-EMAIL</span></p>
-</div>
-</div>
-<!--[if mso]></td></tr></table><![endif]-->
-<!--[if (!mso)&(!IE)]><!-->
-</div>
-<!--<![endif]-->
-</div>
-</div>
-<!--[if (mso)|(IE)]></td></tr></table><![endif]-->
-<!--[if (mso)|(IE)]></td><td align="center" width="200" style="background-color:#fff;width:200px; border-top: 0px solid transparent; border-left: 0px solid transparent; border-bottom: 0px solid transparent; border-right: 0px solid transparent;" valign="top"><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right: 0px; padding-left: 0px; padding-top:5px; padding-bottom:5px;"><![endif]-->
-<div class="col num4" style="max-width: 320px; min-width: 200px; display: table-cell; vertical-align: top; width: 200px;">
-<div style="width:100% !important;">
-<!--[if (!mso)&(!IE)]><!-->
-<div style="border-top:0px solid transparent; border-left:0px solid transparent; border-bottom:0px solid transparent; border-right:0px solid transparent; padding-top:5px; padding-bottom:5px; padding-right: 0px; padding-left: 0px;">
-<!--<![endif]-->
-<!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right: 0px; padding-left: 0px; padding-top: 20px; padding-bottom: 0px; font-family: 'Trebuchet MS', Tahoma, sans-serif"><![endif]-->
-<div style="color:#a8bf6f;font-family:'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif;line-height:120%;padding-top:20px;padding-right:0px;padding-bottom:0px;padding-left:0px;">
-<div style="font-size: 12px; line-height: 14px; font-family: 'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif; color: #a8bf6f;">
-<a href="YOUR-UNSUBSCRIBE-LINK" target="_blank"><p style="font-size: 12px; line-height: 14px; text-align: center; margin: 0;"><span style="color: #156bd2; font-size: 12px; line-height: 14px;"><span style="font-size: 12px; line-height: 14px;">Unsubscribe</span></span></p><a/>
-</div>
-</div>
-<!--[if mso]></td></tr></table><![endif]-->
-<!--[if (!mso)&(!IE)]><!-->
-</div>
-<!--<![endif]-->
-</div>
-</div>
-<!--[if (mso)|(IE)]></td></tr></table><![endif]-->
-<!--[if (mso)|(IE)]></td></tr></table></td></tr></table><![endif]-->
-</div>
-</div>
-</div>
-<div style="background-color:transparent;" class="mobile_condense">
-<div class="block-grid" style="Margin: 0 auto; min-width: 320px; max-width: 600px; overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; background-color: transparent;">
-<div style="border-collapse: collapse;display: table;width: 100%;background-color:transparent;">
-<!--[if (mso)|(IE)]><table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:transparent;"><tr><td align="center"><table cellpadding="0" cellspacing="0" border="0" style="width:600px"><tr class="layout-full-width" style="background-color:transparent"><![endif]-->
-<!--[if (mso)|(IE)]><td align="center" width="600" style="background-color:transparent;width:600px; border-top: 0px solid transparent; border-left: 0px solid transparent; border-bottom: 0px solid transparent; border-right: 0px solid transparent;" valign="top"><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-right: 0px; padding-left: 0px; padding-top:0px; padding-bottom:5px;"><![endif]-->
-<div class="col num12" style="min-width: 320px; max-width: 600px; display: table-cell; vertical-align: top; width: 600px;">
-<div style="width:100% !important;">
-<!--[if (!mso)&(!IE)]><!-->
-<div style="border-top:0px solid transparent; border-left:0px solid transparent; border-bottom:0px solid transparent; border-right:0px solid transparent; padding-top:0px; padding-bottom:5px; padding-right: 0px; padding-left: 0px;">
-<!--<![endif]-->
-<div align="center" class="img-container center autowidth fullwidth" style="padding-right: 0px;padding-left: 0px;">
-<!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr style="line-height:0px"><td style="padding-right: 0px;padding-left: 0px;" align="center"><![endif]--><img align="center" alt="Image" border="0" class="center autowidth fullwidth" src="YOUR-LOGO" style="text-decoration: none; -ms-interpolation-mode: bicubic; border: 0; height: auto; width: 100%; max-width: 600px; display: block;" title="Image" width="600"/>
-<!--[if mso]></td></tr></table><![endif]-->
-</div>
-<table border="0" cellpadding="0" cellspacing="0" class="divider" role="presentation" style="table-layout: fixed; vertical-align: top; border-spacing: 0; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;" valign="top" width="100%">
-<tbody>
-<tr style="vertical-align: top;" valign="top">
-<td class="divider_inner" style="word-break: break-word; vertical-align: top; min-width: 100%; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; padding-top: 30px; padding-right: 30px; padding-bottom: 30px; padding-left: 30px;" valign="top">
-<table align="center" border="0" cellpadding="0" cellspacing="0" class="divider_content" height="0" role="presentation" style="table-layout: fixed; vertical-align: top; border-spacing: 0; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; border-top: 0px solid transparent; height: 0px;" valign="top" width="100%">
-<tbody>
-<tr style="vertical-align: top;" valign="top">
-<td height="0" style="word-break: break-word; vertical-align: top; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;" valign="top"><span></span></td>
-</tr>
-</tbody>
-</table>
-</td>
-</tr>
-</tbody>
-</table>
-<!--[if (!mso)&(!IE)]><!-->
-</div>
-<!--<![endif]-->
-</div>
-</div>
-<!--[if (mso)|(IE)]></td></tr></table><![endif]-->
-<!--[if (mso)|(IE)]></td></tr></table></td></tr></table><![endif]-->
-</div>
-</div>
-</div>
-<!--[if (mso)|(IE)]></td></tr></table><![endif]-->
-</td>
-</tr>
-</tbody>
-</table>
-<!--[if (IE)]></div><![endif]-->
-</body>
-</html>"""})
+def api_cal(url, method, params, body):
+	if method == 'POST':
+		r = requests.post(url = url, params = params, data = json.dumps(body))
+		print (r.json())
