@@ -37,6 +37,7 @@ create table if not exists public.triggers_actions
     constraint action_fk
       references public.actions,
   active boolean default true
+  unique_id uuid not null
 );
 
 alter table public.triggers_actions owner to doadmin;
