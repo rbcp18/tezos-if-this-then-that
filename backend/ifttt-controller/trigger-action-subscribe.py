@@ -78,7 +78,14 @@ def lambda_handler(event, context):
 					action_data_main_endpoint = action['action_data']['email']
 			
 			if trigger["trigger_subtype"] == "baking_event" and trigger['trigger_data']['coin'].upper() == "XTZ":
-				body = { "to_name": "", "to_email": action['action_data']['email'], "subject": "Connected: "+trigger['trigger_data']['chain'].capitalize()+" Baking Endorsement "+action_type_main, "text_line": "Connected: "+trigger['trigger_data']['chain'].capitalize()+" Baking Endorsement "+action_type_main, "main_title": trigger['trigger_data']['chain'].capitalize()+" Baking Endorsement "+action_type_main, "trigger_text": trigger['trigger_data']['chain'].capitalize()+" Block Endorsement by "+trigger['trigger_data']['delegate_address'], "action_text": "send "+action_subtype_main+" to "+action_data_main_endpoint, "id_trigger_action": trigger["trigger_data"]['id_trigger_action'] }
+				body = {}
+
+				if "delegate_address" in trigger['trigger_data']:
+					body = { "to_name": "", "to_email": action['action_data']['email'], "subject": "Connected: "+trigger['trigger_data']['chain'].capitalize()+" Baking Endorsement "+action_type_main, "text_line": "Connected: "+trigger['trigger_data']['chain'].capitalize()+" Baking Endorsement "+action_type_main, "main_title": trigger['trigger_data']['chain'].capitalize()+" Baking Endorsement "+action_type_main, "trigger_text": trigger['trigger_data']['chain'].capitalize()+" Block Endorsement by "+trigger['trigger_data']['delegate_address'], "action_text": "send "+action_subtype_main+" to "+action_data_main_endpoint, "id_trigger_action": trigger["trigger_data"]['id_trigger_action'] }
+				
+				if "baker_address" in trigger['trigger_data']:
+					body = { "to_name": "", "to_email": action['action_data']['email'], "subject": "Connected: "+trigger['trigger_data']['chain'].capitalize()+" Block Baked "+action_type_main, "text_line": "Connected: "+trigger['trigger_data']['chain'].capitalize()+" Block Baked "+action_type_main, "main_title": trigger['trigger_data']['chain'].capitalize()+" Block Baked "+action_type_main, "trigger_text": trigger['trigger_data']['chain'].capitalize()+" Block Baked by "+trigger['trigger_data']['baker_address'], "action_text": "send "+action_subtype_main+" to "+action_data_main_endpoint, "id_trigger_action": trigger["trigger_data"]['id_trigger_action'] }
+
 				api_call_return = api_cal(url, method, params, body)
 				
 			elif trigger["trigger_subtype"] == "delegation_event" and trigger['trigger_data']['coin'].upper() == "XTZ":
