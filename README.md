@@ -426,3 +426,58 @@ Due to API limits, market activity events run every 20 minutes. If you would lik
 **Limitation on Free API Requests**
 
 Currently, we do not limit free trigger subscriptions or API requests. However, we may need to impose limits as usage grows. If requested, we are open to establishing a paid membership for API limit extensions and lower latency on trigger events. Paid membership would be available through delegation to our baker in exchange for usage. Contact us at tezos@fabrx.io if interested.
+
+
+# Deploy Tezos IFTTT Locally
+The Tezos IFTTT frontend runs on Python3.7 and the Django framework. The following steps should deploy the frontend application on your server.
+
+<br />Install Python
+
+```
+# Mac OS utilize Homebrew
+brew install python
+
+# Windows Download
+Download from https://www.python.org/downloads/windows/
+
+# Ubuntu
+sudo apt update
+sudo apt install software-properties-common
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt install python3.7
+```
+
+<br />Install pip
+
+```
+# Mac OS Automatically Installs pip
+
+# Windows Automatically Install pip
+
+# Ubuntu
+sudo apt update
+sudo apt install python3-pip
+```
+
+<br />Launch Django App
+
+```
+# Install Django
+python -m pip install Django
+
+# Download Source
+git clone https://github.com/rbcp18/tezos-if-this-then-that.git
+
+# Go to App Folder
+cd tezos-if-this-then-that/frontend/tezos_ifttt
+
+# Launch Server
+python3 manage.py runserver
+```
+
+<br />The Tezos IFTTT Frontend should now be available on your localhost at:
+
+```
+http://127.0.0.1:8000/
+```
+
