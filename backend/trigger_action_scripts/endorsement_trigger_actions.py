@@ -36,55 +36,21 @@ def getAllOperationRecords(blockNum):
         txRecords.append(baking)
     return txRecords
 
-def getTotalBakerFeeRewards(blockLevel):
-    txnFeeReward = 0.0
-
-    # Retrieve all txns from block
-    url = 'https://node.tezosapi.com/chains/main/blocks/'+str(blockLevel)
-    result = requests.get(url)
-    result_json = result.json()['operations'][3]
-
-    # Loop block txns for fee rewards
-    print (result_json)
-    for operation in result_json:
-        for content in operation["contents"]:
-            if content["kind"] == "transaction":
-                print (content)
-                txnFeeReward+=float(content["fee"])
-
-    # Convert fee rewards to XTZ
-    txnFeeReward = txnFeeReward / 1000000
-    return str(txnFeeReward)
-
-def getBakerDataForBlock(blockLevel):
-    url = 'https://node.tezosapi.com/chains/main/blocks/'+str(blockLevel)
-    result = requests.get(url)
-    
-    baker = result.json()["metadata"]["baker"]
-    txnFeeReward = getTotalBakerFeeRewards(blockLevel)
-    block_hash = result.json()["hash"]
-    block_level = result.json()["header"]["level"]
-    timestamp = result.json()["header"]["timestamp"]
-
-    baker_data = [{"baker":baker, "txnFeeReward":txnFeeReward, "block_hash":block_hash, "block_level":block_level, "timestamp":timestamp}]
-    return baker_data
-
 def processBlock(blockLevel, pool):
     print (blockLevel)
-    txList = getBakerDataForBlock(blockLevel)
+    txList = getAllOperationRecords(blockLevel)
     print (txList)
-    simpleTxList = [(x['baker'].lower(), x['txnFeeReward'], x['block_hash'].lower(), x['block_level'], x['timestamp']) for x in txList]
+    simpleTxList = [(x['delegate'].lower(), x['change'].lower(), x['hash'].lower()) for x in txList]
     print ("SIMPLE LIST")
     print (simpleTxList)
-    runGenericStatement(pool, 'CREATE TEMPORARY TABLE tezos_block_overview (tx_baker varchar, tx_fee_reward varchar, tx_hash varchar, tx_block_level varchar, tx_timestamp varchar)')
-    runMultipleInsert(pool, 'INSERT INTO tezos_block_overview(tx_baker, tx_fee_reward, tx_hash, tx_block_level, tx_timestamp) VALUES %s', simpleTxList)
+    runGenericStatement(pool, 'CREATE TEMPORARY TABLE tezos_block_overview (tx_delegate varchar, tx_reward_amt varchar, tx_hash varchar)')
+    runMultipleInsert(pool, 'INSERT INTO tezos_block_overview(tx_delegate, tx_reward_amt, tx_hash) VALUES %s', simpleTxList)
     
-    # Process 'from' matches
     colnames, matches = runQueryAndGetResults(pool, '''
         SELECT tezos_block_overview.*, triggers_actions_view.* 
         FROM tezos_block_overview, triggers_actions_view 
         WHERE triggers_actions_view.trigger_action_active = TRUE AND
-              tezos_block_overview.tx_baker = triggers_actions_view.trigger_data->>'baker_address'              
+              tezos_block_overview.tx_delegate = triggers_actions_view.trigger_data->>'delegate_address'              
         '''
     )
     processMatches(colnames, matches, isFromMatches = True)
@@ -113,10 +79,10 @@ def processMatches(colnames, matches, isFromMatches):
                 payload = {
                   "to_name": "",
                   "to_email": emailAddress,
-                  "subject": "Block Successfully Baked by " +match[index_trigger_data]['baker_address']+"!",
-                  "text_line": "Block Successfully Baked by " +match[index_trigger_data]['baker_address']+"!",
-                  "main_title": "16 XTZ Reward Sent To Baker "+match[index_trigger_data]['baker_address']+",  Plus " + str(match[colnames.index('tx_fee_reward')]) + "XTZ Fee Rewards",
-                  "trigger_text": "Block Successfully Baked by " +match[index_trigger_data]['baker_address'],
+                  "subject": coin_upper+" Baking Reward Sent To Endorser",
+                  "text_line": coin_upper+" Baking Reward Sent To Endorser",
+                  "main_title": coin_upper+" Baking Reward Sent To Endorser "+match[index_trigger_data]['delegate_address'],
+                  "trigger_text": coin_upper+" Rewarded to "+match[index_trigger_data]['delegate_address'],
                   "action_text": "send email to "+emailAddress,
                   "id_trigger_action": match[index_trigger_action_id]
                 }
@@ -139,9 +105,9 @@ def processMatches(colnames, matches, isFromMatches):
                           "trigger": match[colnames.index('trigger_subtype')],
                           "coin":coin_upper,
                           "chain":match[index_trigger_data]['chain'],
-                          "bakerAddress": match[index_trigger_data]['baker_address'],
-                          "tx_fee_reward": match[colnames.index('tx_fee_reward')],
-                          "block_hash": match[colnames.index('tx_hash')]
+                          "delegateAddress": match[index_trigger_data]['delegate_address'],
+                          "xtzAmount": match[colnames.index('tx_reward_amt')],
+                          "txnHash": match[colnames.index('tx_hash')]
                         }
                 }
                 print(payload)
@@ -165,9 +131,9 @@ def processMatches(colnames, matches, isFromMatches):
                           "trigger": match[colnames.index('trigger_subtype')],
                           "coin":coin_upper,
                           "chain":match[index_trigger_data]['chain'],
-                          "delegateAddress": match[index_trigger_data]['baker_address'],
-                          "tx_fee_reward": match[colnames.index('tx_fee_reward')],
-                          "block_hash": match[colnames.index('tx_hash')]
+                          "delegateAddress": match[index_trigger_data]['delegate_address'],
+                          "xtzAmount": match[colnames.index('tx_reward_amt')],
+                          "txnHash": match[colnames.index('tx_hash')]
                         }}
                 }
                 print(payload)
@@ -202,9 +168,9 @@ def processMatches(colnames, matches, isFromMatches):
                           "trigger": match[colnames.index('trigger_subtype')],
                           "coin":coin_upper,
                           "chain":match[index_trigger_data]['chain'],
-                          "delegateAddress": match[index_trigger_data]['baker_address'],
-                          "tx_fee_reward": match[colnames.index('tx_fee_reward')],
-                          "block_hash": match[colnames.index('tx_hash')]
+                          "delegateAddress": match[index_trigger_data]['delegate_address'],
+                          "xtzAmount": match[colnames.index('tx_reward_amt')],
+                          "txnHash": match[colnames.index('tx_hash')]
                         }}
                 }
                 print(payload)
@@ -246,9 +212,9 @@ def processMatches(colnames, matches, isFromMatches):
                           "trigger": match[colnames.index('trigger_subtype')],
                           "coin":coin_upper,
                           "chain":match[index_trigger_data]['chain'],
-                          "delegateAddress": match[index_trigger_data]['baker_address'],
-                          "tx_fee_reward": match[colnames.index('tx_fee_reward')],
-                          "block_hash": match[colnames.index('tx_hash')]
+                          "delegateAddress": match[index_trigger_data]['delegate_address'],
+                          "xtzAmount": match[colnames.index('tx_reward_amt')],
+                          "txnHash": match[colnames.index('tx_hash')]
                         }}
                 }
                 print(payload)
@@ -280,11 +246,11 @@ def processMatches(colnames, matches, isFromMatches):
                     email_payload = {
                       "to_name": "",
                       "to_email": emailAddress,
-                      "subject": "Block Successfully Baked by " +match[index_trigger_data]['baker_address']+"!",
-                      "text_line": "Block Successfully Baked by " +match[index_trigger_data]['baker_address']+"!",
-                      "main_title": "16 XTZ Reward Sent To Baker "+match[index_trigger_data]['baker_address']+",  Plus " + str(match[colnames.index('tx_fee_reward')]) + "XTZ Fee Rewards",
-                      "trigger_text": "Block Successfully Baked by " +match[index_trigger_data]['baker_address'],
-                      "action_text": "send email to "+emailAddress,
+                      "subject": coin_upper+" Baking Reward Sent To Endorser",
+                      "text_line": coin_upper+" Baking Reward Sent To Endorser",
+                      "main_title": coin_upper+" Baking Reward Sent To Endorser "+match[index_trigger_data]['delegate_address']+" Google Sheets Data: "+json.dumps(api_response),
+                      "trigger_text": coin_upper+" Rewarded to "+match[index_trigger_data]['delegate_address'],
+                      "action_text": "send email to "+emailAddress + " with Google Sheets Data",
                       "id_trigger_action": match[index_trigger_action_id]
                     }
                     print(email_payload)
