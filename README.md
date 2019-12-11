@@ -460,3 +460,19 @@ Example Call:
 RESPONSE: <br />
 {"balance": "1635176756166", "frozen_balance": "1147658284917", "staking_balance": "12241096788028", "delegated_balance": "10639586398514", "deactivated": false, "grace_period": 177}<br />
 {"kind": "freezer", "category": "rewards", "delegate": "tz1P2Po7YM526ughEsRbY4oR9zaUPDZjxFrb", "cycle": 171, "change": "2000000", "hash": "ooyA9pRwztDfRa97RNuD1ftcS8u4g4T2SKqZGAbfd2kacSVMscs"}
+
+
+## Miscellaneous
+
+**Delay Between Trigger and Email**
+
+Mailgun is utilized as the email backend. Email addresses which pass initial validation typically respond with a delay of ~0.75 seconds. Email addresses which do not pass initial validation may take up to 30 minutes to respond. Email addresses which do not pass validation altogether will fail trigger subscription. This should be seen in the initial trigger signup.
+
+On-chain triggers run every ~15 seconds. Thus, total delay for an email to be received on a triggered event can be up to 30 seconds.
+
+Due to API limits, market activity events run every 20 minutes. If you would like lower latency, we are open to supporting a paid version through delegation to our baker. Contact us at tezos@fabrx.io to discuss.
+
+
+**Limitation on Free API Requests**
+
+Currently, we do not limit free trigger subscriptions or API requests. However, we may need to impose limits as usage grows. If requested, we are open to establishing a paid membership for API limit extensions and lower latency on trigger events. Paid membership would be available through delegation to our baker in exchange for usage. Contact us at tezos@fabrx.io if interested.
