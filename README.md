@@ -14,6 +14,8 @@ Launching a trigger and action thread is trivial with the Fabrx API endpoint. Si
 
 Here's the general framework:
 
+**Subscribe to Trigger-Action**
+
 URL: https://apis.fabrx.io/v1.0/trigger-actions/subscribe <br />
 METHOD: POST <br />
 BODY: {
@@ -30,6 +32,16 @@ BODY: {
    }
  ]
 }
+
+RESULT: { TRIGGER-ACTION-ID : "UUID" }
+
+**Unsubscribe to Trigger-Action**
+
+The TRIGGER-ACTION-ID is provided as the result of /subscribe.
+
+URL: https://apis.fabrx.io/v1.0/trigger-actions/unsubscribe/TRIGGER-ACTION-ID <br />
+METHOD: POST <br />
+BODY: {}
 
 
 **Wallet Triggers**
