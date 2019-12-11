@@ -452,6 +452,11 @@ RESPONSE: [
 
 Tezos websocket is available at ws://websocket.tezosapi.com. The address of the baker that you would like to subscribe to must be passed when subscribing to the websocket.
 
+On webhook subscription, you will be updated on the following events per block:
+- General Delegate Info (Each Block)
+- Operations Involving Delegate (Each Block)
+- Baking Events and Transaction Fee Rewards (If Selected as Baker on Block)
+
 Example Call:
 
 1. Connect to ws://websocket.tezosapi.com
