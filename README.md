@@ -500,6 +500,21 @@ cd tezos-if-this-then-that/backend
 python3 tezos_websocket_server.py
 ```
 
+<br />Launch Trigger-Action Database
+```
+# Create a PostgreSQL database to hold the trigger-action data. There are many cloud options to launch a PostgreSQL database, such as AWS RDS and Digital Ocean.
+
+# Log in to the database
+
+# Utilize a database command line tool to enter the following:
+copy code from https://github.com/rbcp18/tezos-if-this-then-that/blob/master/backend/trigger-actions-db-script.sql
+paste code into database command line
+
+# Your trigger-actions database should now be launch! Connect your database to the trigger-action scripts and IFTTT controller at the following line:
+pg_pool = psycopg2.pool.SimpleConnectionPool(1, 20, host="",database="", user="", password="", port="", options=f'-c search_path={schema}',)
+
+```
+
 <br />Launch IFTTT Controller
 ```
 # IFTTT Controller is responsible for subscribing and unsubscribing to trigger-actions, as well as delivering the signup and event emails. 
