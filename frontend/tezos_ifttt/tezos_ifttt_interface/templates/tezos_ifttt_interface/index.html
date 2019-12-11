@@ -165,6 +165,19 @@
 
           <hr width="80%">
 
+          <a href="javascript:void(0);" onclick="select_Trigger('baking_block_rewards');">
+            <div class="row d-flex justify-content-center">
+              <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <img src="https://img.icons8.com/officel/80/000000/cook-female.png" width="50%" class="ml-4" >
+              </div>
+              <div class="col-7 col-sm-7 col-md-7 col-lg-7 mt-0">
+                <p class=" mb-0"><font color=""><span class="float-left"><b>Block Baked</b></span><span class="float-right">Baker</span></font></p>
+              </div>
+            </div>
+          </a>
+
+          <hr width="80%">
+
           <a href="javascript:void(0);" onclick="select_Trigger('baking_delegation');">
             <div class="row d-flex justify-content-center">
               <div class="col-2 col-sm-2 col-md-2 col-lg-2">
@@ -258,6 +271,19 @@
           <div>
             <h5 class="mt-3 mb-0 text-center"><font color="black">&nbsp;&nbsp;&nbsp;Governance Events</font></h5>
           </div>
+
+          <hr width="80%">
+
+          <a href="javascript:void(0);" onclick="select_Trigger('xtz_governance_new_voting_period');">
+            <div class="row d-flex justify-content-center">
+              <div class="col-2 col-sm-2 col-md-2 col-lg-2">
+                <img src="https://image.flaticon.com/icons/png/512/48/48751.png" width="50%" class="ml-4" >
+              </div>
+              <div class="col-7 col-sm-7 col-md-7 col-lg-7 mt-0">
+                <p class=" mb-0"><font color=""><span class="float-left"><b>New Voting Period</b></span><span class="float-right">Blockchain</span></font></p>
+              </div>
+            </div>
+          </a>
 
           <hr width="80%">
           
@@ -422,6 +448,13 @@
           "trigger_input":["XTZ Address (of Baker)"],
           "icon_url":"https://img.icons8.com/officel/80/000000/cook-female.png"
         },
+      "baking_block_rewards" : 
+        {
+          "main_title":"Block Baked", 
+          "sub_title":"Block Baked by Baker",
+          "trigger_input":["XTZ Address (of Baker)"],
+          "icon_url":"https://img.icons8.com/officel/80/000000/cook-female.png"
+        },
       "wallet_xtz_sent" :
         {
           "main_title":"Tezos (XTZ)", 
@@ -468,6 +501,13 @@
         {
           "main_title":"Tezos Governance", 
           "sub_title":"New Proposal Created",
+          "trigger_input":[],
+          "icon_url":"https://image.flaticon.com/icons/png/512/48/48751.png"
+        },
+      "xtz_governance_new_voting_period" :
+        {
+          "main_title":"Tezos Governance", 
+          "sub_title":"New Voting Period Started",
           "trigger_input":[],
           "icon_url":"https://image.flaticon.com/icons/png/512/48/48751.png"
         },
