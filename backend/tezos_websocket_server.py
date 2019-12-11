@@ -14,15 +14,15 @@ def getBlockLevel():
     result = requests.get(url)
     return result.json()["header"]["level"]
 
-def getBlockTimestamp():
-    url = 'https://node.tezosapi.com/chains/main/blocks/head'
+def getBlockTimestamp(blockLevel):
+    url = 'https://node.tezosapi.com/chains/main/blocks/'+str(blockLevel)
     result = requests.get(url)
     return result.json()["header"]["timestamp"]
 
-def getAllOperationRecords():
+def getAllOperationRecords(blockLevel):
     txRecords = []
     
-    url = 'https://node.tezosapi.com/chains/main/blocks/head'
+    url = 'https://node.tezosapi.com/chains/main/blocks/'+str(blockLevel)
     result = requests.get(url)
     result_json = result.json()['operations'][0]
 
@@ -31,6 +31,31 @@ def getAllOperationRecords():
         baking['hash'] = endorsement['hash']
         txRecords.append(baking)
     return txRecords
+
+def getBakerForBlock(blockLevel):
+    url = 'https://node.tezosapi.com/chains/main/blocks/'+str(blockLevel)
+    result = requests.get(url)
+    return result.json()["metadata"]["baker"]
+
+def getTotalBakerFeeRewards(blockLevel):
+    txnFeeReward = 0.0
+
+    # Retrieve all txns from block
+    url = 'https://node.tezosapi.com/chains/main/blocks/'+str(blockLevel)
+    result = requests.get(url)
+    result_json = result.json()['operations'][3]
+
+    # Loop block txns for fee rewards
+    print (result_json)
+    for operation in result_json:
+        for content in operation["contents"]:
+            if content["kind"] == "transaction":
+                print (content)
+                txnFeeReward+=float(content["fee"])
+
+    # Convert fee rewards to XTZ
+    txnFeeReward = txnFeeReward / 1000000
+    return str(txnFeeReward)
 
 # Handle websocket connection
 async def handler(websocket, path):
@@ -58,23 +83,32 @@ async def handler(websocket, path):
                         if catchUp:
                             blockLevelUsed = blockLevel
 
+                        blockTimestamp = getBlockTimestamp(blockLevelUsed)
+
                         # Retrieve and pass along the general delegate info (as JSON string)
                         async with session.get('http://node.tezosapi.com/chains/main/blocks/'+str(blockLevelUsed)+'/context/delegates/'+bakerAddress) as resp:
                             respData = await resp.json()
                             del respData["frozen_balance_by_cycle"]
                             del respData["delegated_contracts"]
                             respData["block_level"] = blockLevelUsed
-                            respData["timestamp"] = getBlockTimestamp()
+                            respData["timestamp"] = blockTimestamp
                             await websocket.send(json.dumps(respData))
 
                         
                         # Retrieve and pass along the operation info for this particular baker on block (as JSON string).
-                        operations = getAllOperationRecords()
+                        operations = getAllOperationRecords(blockLevelUsed)
                         for tx in operations:
                             if tx["delegate"] == bakerAddress:
                                 tx["block_level"] = blockLevelUsed
-                                tx["timestamp"] = getBlockTimestamp()
+                                tx["timestamp"] = blockTimestamp
                                 await websocket.send((json.dumps(tx)))
+
+                        # Baking Events: If baker chosen for block, retrieve and pass along txn fee rewards for baker
+                        if bakerAddress == getBakerForBlock(blockLevelUsed):
+                            txnFeeReward = getTotalBakerFeeRewards(blockLevelUsed)
+                            await websocket.send("Successfully baked block: " + str(blockLevelUsed) + " !")
+                            await websocket.send(json.dumps({ "baker":bakerAddress, "txn_fee_reward": txnFeeReward, "block_level":blockLevelUsed, "timestamp":blockTimestamp}))
+
                     except Exception as err:
                         print (f"Cannot process block: {blockLevel}, skipping it, because of exception", err)                
                 
