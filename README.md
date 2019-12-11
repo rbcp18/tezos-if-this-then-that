@@ -46,50 +46,36 @@ BODY: {}
 
 **Wallet Triggers**
 
-Type<br />
-{"trigger_type": "wallet"}
-
-_Tokens Enter or Leave Wallet_
-
-Subtypes<br />
-{"trigger_subtype": "coin_leaves"}<br />
-{"trigger_subtype": "coin_enters"}<br />
-
-Data<br />
-{"trigger_data": {
+Type: {"trigger_type": "wallet"}
+- _Tokens Enter or Leave Wallet_
+   - Subtypes<br />
+     - {"trigger_subtype": "coin_leaves"}<br />
+     - {"trigger_subtype": "coin_enters"}<br />
+   - Data<br />
+     - {"trigger_data": {
 			"wallet_address": "",
 			"chain": "tezos",
-			"coin": "XTZ"
-}}
-
-_Baker Endorsement of Block_
-
-Subtypes<br />
-{"trigger_subtype": "baking_event"}<br />
-
-Data<br />
-{"trigger_data": {
+			"coin": "XTZ"}}
+- _Baker Endorsement of Block_
+   - Subtypes<br />
+     - {"trigger_subtype": "baking_event"}<br />
+   - Data<br />
+     - {"trigger_data": {
 			"delegate_address": "",
 			"chain": "tezos",
-			"coin": "XTZ"
-}}
-
-_Delegation to Baker_
-
-Subtypes<br />
-{"trigger_subtype": "delegation_event"}<br />
-
-Data<br />
-{"trigger_data": {
+			"coin": "XTZ"}}
+- _Delegation to Baker_
+   - Subtypes<br />
+     - {"trigger_subtype": "delegation_event"}<br />
+   - Data<br />
+     - {"trigger_data": {
 			"delegator_address": "",
 			"chain": "tezos",
-			"coin": "XTZ"
-}}
+			"coin": "XTZ"}}
 
 
 **Trading Triggers**
 
-Type<br />
 {"trigger_type": "trading"}
 
 _XTZ Price Above or Below $X_
@@ -143,7 +129,6 @@ Data<br />
 
 **Governance Triggers**
 
-Type<br />
 {"trigger_type": "governance"}
 
 _New Tezos Governance Proposal_
@@ -161,7 +146,6 @@ Data<br />
 
 **Smart Contract Triggers**
 
-Type<br />
 {"trigger_type": "contract"}
 
 _New Contract Deposit_
@@ -179,7 +163,6 @@ Data<br />
 
 **Notification Actions**
 
-Type<br />
 {"action_type": "notification"}
 
 _Email Notification_
@@ -196,7 +179,6 @@ Data<br />
 
 **Webhook Actions**
 
-Type<br />
 {"action_type": "webhook"}
 
 _Pass Data as JSON to Webhook_
