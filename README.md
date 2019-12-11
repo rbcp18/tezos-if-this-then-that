@@ -213,14 +213,35 @@ Type: {"action_type": "webhook"}
 
 ## Fabrx Tezos Node
 
-The Fabrx Tezos Node runs an operating Tezos node, offered for usage to the public in a manner similar to Infura. Feel free to use the node endpoint for testing or mainnet activity! For documentation purposes, please reference https://tezos.gitlab.io/tezos/api/rpc.html.
+The Fabrx Tezos Node runs both an archive node and regular node, offered for usage to the public in a manner similar to Infura. Feel free to use the node endpoint for testing or mainnet activity! For documentation purposes, please reference https://tezos.gitlab.io/tezos/api/rpc.html.
+
+**Archive Node**
+
+URL: https://node-archive.tezosapi.com/
+
+Example Archive Node Call:
+
+Get Current Block Info<br />
+URL: https://node-archive.tezosapi.com/chains/main/blocks/100/<br />
+METHOD: GET<br />
+BODY: {}<br />
+
+RESPONSE: {"protocol": "",
+    "chain_id": "",
+    "hash": "",
+    "header": [...],
+    "metadata": [...],
+    "operations": [...]}
+
+
+**Regular Node**
 
 URL: https://node.tezosapi.com <br />
 
-Example Node Call:
+Example Regular Node Call:
 
 Get Current Block Info<br />
-URL: http://node.tezosapi.com/chains/main/blocks/head/<br />
+URL: https://node.tezosapi.com/chains/main/blocks/head/<br />
 METHOD: GET<br />
 BODY: {}<br />
 
