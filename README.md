@@ -47,7 +47,8 @@ BODY: {}
 **Wallet Triggers**
 
 Type: {"trigger_type": "wallet"}
-- _Tokens Enter or Leave Wallet_
+
+- Tokens Enter or Leave Wallet
    - Subtypes<br />
      - {"trigger_subtype": "coin_leaves"}<br />
      - {"trigger_subtype": "coin_enters"}<br />
@@ -56,7 +57,7 @@ Type: {"trigger_type": "wallet"}
 			"wallet_address": "",
 			"chain": "tezos",
 			"coin": "XTZ"}}
-- _Baker Endorsement of Block_
+- Baker Endorsement of Block
    - Subtypes<br />
      - {"trigger_subtype": "baking_event"}<br />
    - Data<br />
@@ -64,7 +65,7 @@ Type: {"trigger_type": "wallet"}
 			"delegate_address": "",
 			"chain": "tezos",
 			"coin": "XTZ"}}
-- _Delegation to Baker_
+- Delegation to Baker
    - Subtypes<br />
      - {"trigger_subtype": "delegation_event"}<br />
    - Data<br />
@@ -76,131 +77,102 @@ Type: {"trigger_type": "wallet"}
 
 **Trading Triggers**
 
-{"trigger_type": "trading"}
+Type: {"trigger_type": "trading"}
 
-_XTZ Price Above or Below $X_
-
-Subtypes<br />
-{"trigger_subtype": "pricing"}<br />
-
-Data<br />
-{"trigger_data": {
+- XTZ Price Above or Below $X
+  - Subtypes<br />
+    - {"trigger_subtype": "pricing"}<br />
+  - Data<br />
+    - {"trigger_data": {
 			"monitor":"last_price",
 			"coin": "xtz", 
 			"chain": "tezos",
 			"price": 0, 
 			"direction": "[above or below]",
 			"exchange": "",
-			"already_called":0
-}}
+			"already_called":0}}
 
-_XTZ Volume Above or Below $X_
-
-Subtypes<br />
-{"trigger_subtype": "volume"}<br />
-
-Data<br />
-{"trigger_data": {
+- XTZ Volume Above or Below $X
+  - Subtypes<br />
+    - {"trigger_subtype": "volume"}<br />
+  - Data<br />
+    - {"trigger_data": {
 			"monitor":"last_vol",
 			"coin": "xtz", 
 			"chain": "tezos",
 			"volume": "", 
 			"direction": "[above or below]",
 			"exchange": "",
-			"already_called":0
-}}
+			"already_called":0}}
 
-_XTZ Market Cap Above or Below $X_
-
-Subtypes<br />
-{"trigger_subtype": "market_cap"}<br />
-
-Data<br />
-{"trigger_data": {
+- XTZ Market Cap Above or Below $X
+  - Subtypes<br />
+    - {"trigger_subtype": "market_cap"}<br />
+  - Data<br />
+    - {"trigger_data": {
 			"monitor":"last_market_cap",
 			"coin": "xtz", 
 			"chain": "tezos",
 			"market_cap": "", 
 			"direction": "[above or below]",
 			"exchange": "",
-			"already_called":0
-}}
+			"already_called":0}}
 
 
 **Governance Triggers**
 
-{"trigger_type": "governance"}
+Type: {"trigger_type": "governance"}
 
-_New Tezos Governance Proposal_
-
-Subtypes<br />
-{"trigger_subtype": "proposal"}<br />
-
-Data<br />
-{"trigger_data": {
+- New Tezos Governance Proposal
+  - Subtypes<br />
+    - {"trigger_subtype": "proposal"}<br />
+  - Data<br />
+    - {"trigger_data": {
 			"new_proposals":"YES",
 			"coin": "xtz", 
-			"chain": "tezos"
-}}
+			"chain": "tezos"}}
 
 
 **Smart Contract Triggers**
 
-{"trigger_type": "contract"}
+Type: {"trigger_type": "contract"}
 
-_New Contract Deposit_
-
-Subtypes<br />
-{"trigger_subtype": "contract_deposit"}<br />
-
-Data<br />
-{"trigger_data": {
+- New Contract Deposit
+  - Subtypes<br />
+    - {"trigger_subtype": "contract_deposit"}<br />
+  - Data<br />
+    - {"trigger_data": {
 			"contract_address": "",
 			"chain": "tezos",
-			"coin": "xtz"
-}}
+			"coin": "xtz"}}
 
 
 **Notification Actions**
 
-{"action_type": "notification"}
+Type: {"action_type": "notification"}
 
-_Email Notification_
-
-Subtypes<br />
-{"action_subtype": "send_email"}<br />
-
-Data<br />
-{""action_data":
-	{
-		"email": ""
-}}
+- Email Notification
+  - Subtypes<br />
+    - {"action_subtype": "send_email"}<br />
+  - Data<br />
+    - {""action_data":{"email": ""}}
 
 
 **Webhook Actions**
 
-{"action_type": "webhook"}
+Type: {"action_type": "webhook"}
 
-_Pass Data as JSON to Webhook_
+- Pass Data as JSON to Webhook
+  - Subtypes<br />
+    - {"action_subtype": "json"}<br />
+  - Data<br />
+    - {""action_data":{"email": "","webhook": ""}}
 
-Subtypes<br />
-{"action_subtype": "json"}<br />
-
-Data<br />
-{""action_data":
-	{
-		"email": "",
-		"webhook": ""
-}}
-
-_Run RPC Forge Operation on Trigger_
-
-Subtypes<br />
-{"action_subtype": "rpc"}<br />
-
-Data<br />
-{""action_data":
-	{
+- Run RPC Forge Operation on Trigger
+  - Subtypes<br />
+    - {"action_subtype": "rpc"}<br />
+  - Data<br />
+    - {""action_data":{
 			"email": "",
 			"webhook": "",
 			"function": {
@@ -210,17 +182,13 @@ Data<br />
 					"destinationAddress":"", 
 					"amount":0
 				}
-			}
-}}
+			}}}
 
-_Run API Call on Trigger_
-
-Subtypes<br />
-{"action_subtype": "api_actions"}<br />
-
-Data<br />
-{""action_data":
-	{
+- Run API Call on Trigger
+  - Subtypes<br />
+    - {"action_subtype": "api_actions"}<br />
+  - Data<br />
+    - {""action_data":{
 			"email": "",
 			"webhook": "",
 			"api_function": {
@@ -228,25 +196,20 @@ Data<br />
 				"path":"", 
 				"method":"", 
 				"data": {}
-			}
-}}
+			}}}
 
-_Get Google Sheets Data on Trigger_
-
-Subtypes<br />
-{"action_subtype": "google_sheets"}<br />
-
-Data<br />
-{""action_data":
-	{
+- Get Google Sheets Data on Trigger
+  - Subtypes<br />
+    - {"action_subtype": "google_sheets"}<br />
+  - Data<br />
+    - {""action_data":{
 			"email": "",
 			"webhook": "",
 			"sheets_data": {
        		"spreadsheetId":"", 
        		"sheetName":"", 
        		"rows":""
-       }
-}}
+       }}}
 
 ## Fabrx Tezos Node
 
