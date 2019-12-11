@@ -482,12 +482,13 @@ http://127.0.0.1:8000/
 ```
 
 # Deploy Tezos IFTTT Backend
-The Tezos IFTTT backend is divided into four sections - websocket, trigger-action scripts, ifttt controller, and PostgreSQL database.
+The Tezos IFTTT backend is divided into four sections - websocket, ifttt controller, trigger-action scripts, and PostgreSQL database.
 
 
 Launch Websocket
 ```
 # Open new terminal to launch websocket server
+# Install Python3.7 (See above for help)
 
 # Download Source
 git clone https://github.com/rbcp18/tezos-if-this-then-that.git
@@ -497,4 +498,72 @@ cd tezos-if-this-then-that/backend
 
 # Launch Websocket
 python3 tezos_websocket_server.py
+```
+
+<br />Launch IFTTT Controller
+```
+# IFTTT Controller is responsible for subscribing and unsubscribing to trigger-actions, as well as delivering the signup and event emails. 
+# We deploy each controller script to AWS Lambda, however you can run each locally by opening a flask server (https://www.fullstackpython.com/flask.html).
+
+# Install Python3.7 (See above for help)
+
+# Download Source
+git clone https://github.com/rbcp18/tezos-if-this-then-that.git
+
+# Go to Backend Folder
+cd tezos-if-this-then-that/backend/ifttt-controller
+
+# Deploy Each Controller Script to a New AWS Lambda or Launch as New Function in a Flask Server
+
+# Event triggered email script
+python3 trigger-action-event-email.py
+
+# Trigger-action subscribed email script
+python3 trigger-action-subscribe-email.py
+
+# Trigger-action subscribe script
+python3 trigger-action-subscribe.py
+
+# Trigger-action unsubscribe script
+python3 trigger-action-unsubscribe.py
+```
+
+<br />Launch Trigger Action Scripts
+```
+# Trigger-Action scripts are responsible for monitoring and alerting on events. 
+# We run each trigger-action on our server.
+
+# Install Python3.7 (See above for help)
+
+# Download Source
+git clone https://github.com/rbcp18/tezos-if-this-then-that.git
+
+# Go to Backend Folder
+cd tezos-if-this-then-that/backend/trigger_action_scripts
+
+# Launch each trigger-action script in a new screen or terminal
+
+# Baking Trigger Monitoring
+python3 baking_trigger_actions.py
+
+# Contracts Trigger Monitoring
+python3 contracts_trigger_actions.py
+
+# Delegation Trigger Monitoring
+python3 delegation_trigger_actions.py
+
+# Endorsement Trigger Monitoring
+python3 endorsement_trigger_actions.py
+
+# Proposals Trigger Monitoring
+python3 proposals_trigger_actions.py
+
+# Trading & Market Activity Trigger Monitoring
+python3 trading_trigger_actions.py
+
+# Voting Phase Trigger Monitoring
+python3 voting_trigger_actions.py
+
+# Wallet Trigger Monitoring
+python3 wallet_trigger_actions.py
 ```
