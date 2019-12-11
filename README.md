@@ -37,7 +37,7 @@ RESULT: { TRIGGER-ACTION-ID : "UUID" }
 
 **Unsubscribe to Trigger-Action**
 
-The TRIGGER-ACTION-ID is provided as the result of /subscribe.
+Triggers can be unsubscribed either through the link provided in the trigger's email or the API directly. The TRIGGER-ACTION-ID is provided as the result of /subscribe.
 
 URL: https://apis.fabrx.io/v1.0/trigger-actions/unsubscribe/TRIGGER-ACTION-ID <br />
 METHOD: POST <br />
