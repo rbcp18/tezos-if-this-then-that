@@ -17,6 +17,15 @@ ifttt_tezos_triggers = {
 			"coin": "xtz"
 		}
 	},
+	"baking_block_rewards" : {
+		"trigger_type": "wallet",
+		"trigger_subtype": "baking_event",
+		"trigger_data": {
+			"baker_address": "",
+			"chain": "tezos",
+			"coin": "xtz"
+		}
+	},
 	"wallet_xtz_sent" : {
 		"trigger_type": "wallet",
 		"trigger_subtype": "coin_leaves",
@@ -86,6 +95,15 @@ ifttt_tezos_triggers = {
 	"xtz_governance_new_proposals" : {
 		"trigger_type": "governance",
 		"trigger_subtype": "proposal",
+		"trigger_data": {
+			"new_proposals":"YES",
+			"coin": "xtz", 
+			"chain": "tezos"
+		}
+	},
+	"xtz_governance_new_voting_period" : {
+		"trigger_type": "governance",
+		"trigger_subtype": "voting_phase",
 		"trigger_data": {
 			"new_proposals":"YES",
 			"coin": "xtz", 
@@ -183,6 +201,9 @@ def ifttt_launch(request):
 	# Enter data into trigger_data and action_data
 	if trigger_id == "baking_endorsement_rewards":
 		trigger_data["trigger_data"]["delegate_address"] = wallet_address
+
+	if trigger_id == "baking_block_rewards":
+		trigger_data["trigger_data"]["baker_address"] = wallet_address
 
 	if trigger_id == "baking_delegation":
 		trigger_data["trigger_data"]["delegator_address"] = wallet_address
