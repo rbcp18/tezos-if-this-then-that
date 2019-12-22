@@ -84,7 +84,7 @@ def processBlock(blockLevel, pool):
         SELECT tezos_block_overview.*, triggers_actions_view.* 
         FROM tezos_block_overview, triggers_actions_view 
         WHERE triggers_actions_view.trigger_action_active = TRUE AND
-              tezos_block_overview.tx_baker = triggers_actions_view.trigger_data->>'baker_address'              
+              tezos_block_overview.tx_baker = lower(triggers_actions_view.trigger_data->>'baker_address')              
         '''
     )
     processMatches(colnames, matches, isFromMatches = True)
