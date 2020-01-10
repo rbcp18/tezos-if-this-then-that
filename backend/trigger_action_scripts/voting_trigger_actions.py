@@ -38,6 +38,11 @@ def processMatches(colnames, matches, currentProposal, isFromMatches):
         index_action_data = colnames.index('action_data')
         index_trigger_data = colnames.index('trigger_data')
         index_trigger_action_id = colnames.index('trigger_action_id')
+        index_unique_id = index_trigger_action_id
+        try:
+            index_unique_id = colnames.index('unique_id')
+        except:
+            print ("No unique_id found.")
         for match in matches:
             print ('match')
             print (match)
@@ -55,7 +60,7 @@ def processMatches(colnames, matches, currentProposal, isFromMatches):
                   "main_title": coin_upper+" New Voting Phase Period: "+str(currentProposal).capitalize(),
                   "trigger_text": coin_upper+" New Voting Phase Period",
                   "action_text": "send email to "+emailAddress,
-                  "id_trigger_action": match[index_trigger_action_id]
+                  "id_trigger_action": match[index_unique_id]
                 }
                 print(payload)
                 try:
@@ -216,7 +221,7 @@ def processMatches(colnames, matches, currentProposal, isFromMatches):
                       "main_title": coin_upper+" New Voting Phase Period: "+str(currentProposal).capitalize()+" Google Sheets Data: "+json.dumps(api_response),
                       "trigger_text": coin_upper+" New Voting Phase Period",
                       "action_text": "send email to "+emailAddress,
-                      "id_trigger_action": match[index_trigger_action_id]
+                      "id_trigger_action": match[index_unique_id]
                     }
                     print(email_payload)
                     try:

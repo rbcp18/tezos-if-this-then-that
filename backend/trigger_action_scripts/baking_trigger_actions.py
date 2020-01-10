@@ -73,7 +73,7 @@ def processBlock(blockLevel, pool):
     print (blockLevel)
     txList = getBakerDataForBlock(blockLevel)
     print (txList)
-    simpleTxList = [(x['baker'].lower(), x['txnFeeReward'], x['block_hash'].lower(), x['block_level'], x['timestamp']) for x in txList]
+    simpleTxList = [(x['baker'].lower(), x['txnFeeReward'], x['block_hash'], x['block_level'], x['timestamp']) for x in txList]
     print ("SIMPLE LIST")
     print (simpleTxList)
     runGenericStatement(pool, 'CREATE TEMPORARY TABLE tezos_block_overview (tx_baker varchar, tx_fee_reward varchar, tx_hash varchar, tx_block_level varchar, tx_timestamp varchar)')
@@ -101,6 +101,11 @@ def processMatches(colnames, matches, isFromMatches):
         index_action_data = colnames.index('action_data')
         index_trigger_data = colnames.index('trigger_data')
         index_trigger_action_id = colnames.index('trigger_action_id')
+        index_unique_id = index_trigger_action_id
+        try:
+            index_unique_id = colnames.index('unique_id')
+        except:
+            print ("No unique_id found.")
         for match in matches:
             print ('match')
             print (match)
@@ -115,10 +120,10 @@ def processMatches(colnames, matches, isFromMatches):
                   "to_email": emailAddress,
                   "subject": "Block Successfully Baked by " +match[index_trigger_data]['baker_address']+"!",
                   "text_line": "Block Successfully Baked by " +match[index_trigger_data]['baker_address']+"!",
-                  "main_title": "16 XTZ Reward Sent To Baker "+match[index_trigger_data]['baker_address']+",  Plus " + str(match[colnames.index('tx_fee_reward')]) + "XTZ Fee Rewards",
+                  "main_title": "16 XTZ Reward Sent To Baker "+match[index_trigger_data]['baker_address']+",  Plus " + str(match[colnames.index('tx_fee_reward')]) + "XTZ Fee Rewards" + " at Operation Hash " + match[colnames.index('tx_hash')],
                   "trigger_text": "Block Successfully Baked by " +match[index_trigger_data]['baker_address'],
                   "action_text": "send email to "+emailAddress,
-                  "id_trigger_action": match[index_trigger_action_id]
+                  "id_trigger_action": match[index_unique_id]
                 }
                 print(payload)
                 try:
@@ -282,10 +287,10 @@ def processMatches(colnames, matches, isFromMatches):
                       "to_email": emailAddress,
                       "subject": "Block Successfully Baked by " +match[index_trigger_data]['baker_address']+"!",
                       "text_line": "Block Successfully Baked by " +match[index_trigger_data]['baker_address']+"!",
-                      "main_title": "16 XTZ Reward Sent To Baker "+match[index_trigger_data]['baker_address']+",  Plus " + str(match[colnames.index('tx_fee_reward')]) + "XTZ Fee Rewards",
+                      "main_title": "16 XTZ Reward Sent To Baker "+match[index_trigger_data]['baker_address']+",  Plus " + str(match[colnames.index('tx_fee_reward')]) + "XTZ Fee Rewards" + " at Operation Hash " + match[colnames.index('tx_hash')],
                       "trigger_text": "Block Successfully Baked by " +match[index_trigger_data]['baker_address'],
                       "action_text": "send email to "+emailAddress,
-                      "id_trigger_action": match[index_trigger_action_id]
+                      "id_trigger_action": match[index_unique_id]
                     }
                     print(email_payload)
                     try:
@@ -322,10 +327,11 @@ def main_real():
 
         newblockLevel = getBlockLevel()
         
-        print (f"Looping between {blockLevel} and {newblockLevel}")
-        if blockLevel != newblockLevel:
-            try:          
-                processBlock(newblockLevel, pg_pool)
+        while blockLevel < newblockLevel:
+            blockLevel += 1;
+            print (f"Looping between {blockLevel} and {newblockLevel}")
+            try:    
+                processBlock(blockLevel, pg_pool)
             except Exception as err:
                 print (f"Cannot process block: {blockLevel}, skipping it, because of exception", err)                
 

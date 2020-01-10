@@ -303,6 +303,11 @@ def main_real():
 					index_trigger_data = colnames.index('trigger_data')
 					index_trigger_action_id = colnames.index('trigger_action_id')
 					index_trigger_id = colnames.index('trigger_id')
+					index_unique_id = index_trigger_action_id
+					try:
+						index_unique_id = colnames.index('unique_id')
+					except:
+						print ("No unique_id found.")
 
 					if match[index_trigger_data]["monitor"] == "last_vol":
 						if match[index_trigger_data]["direction"] == "above":
@@ -310,7 +315,7 @@ def main_real():
 								if float(coin_data[match[index_trigger_data]["coin"].upper()]["quote"]["USD"]["volume_24h"]) >= float(match[index_trigger_data]["volume"]):
 									
 									#print results
-									print (f'c{match[index_trigger_data]["coin"].upper()} is {match[index_trigger_data]["direction"]} {match[index_trigger_data]["volume"]*100}%')
+									print (f'c{match[index_trigger_data]["coin"].upper()} is {match[index_trigger_data]["direction"]} {float(match[index_trigger_data]["volume"])*100}%')
 
 									#update database
 									match[index_trigger_data]["already_called"] = 1
@@ -344,7 +349,7 @@ def main_real():
 								if float(coin_data[match[index_trigger_data]["coin"].upper()]["quote"]["USD"]["volume_24h"]) <= float(match[index_trigger_data]["volume"]):
 									
 									#print
-									print (f'c{match[index_trigger_data]["coin"].upper()} is {match[index_trigger_data]["direction"]} {match[index_trigger_data]["volume"]*100}%')
+									print (f'c{match[index_trigger_data]["coin"].upper()} is {match[index_trigger_data]["direction"]} {float(match[index_trigger_data]["volume"])*100}%')
 
 									#update database
 									match[index_trigger_data]["already_called"] = 1
@@ -403,7 +408,7 @@ def main_real():
 								if float(coin_data[match[index_trigger_data]["coin"].upper()]["quote"]["USD"]["market_cap"]) >= float(match[index_trigger_data]["market_cap"]):
 									
 									#print results
-									print (f'c{match[index_trigger_data]["coin"].upper()} is {match[index_trigger_data]["direction"]} {match[index_trigger_data]["market_cap"]*100}%')
+									print (f'c{match[index_trigger_data]["coin"].upper()} is {match[index_trigger_data]["direction"]} {float(match[index_trigger_data]["market_cap"])*100}%')
 
 									#update database
 									match[index_trigger_data]["already_called"] = 1
@@ -437,7 +442,7 @@ def main_real():
 								if float(coin_data[match[index_trigger_data]["coin"].upper()]["quote"]["USD"]["market_cap"]) <= float(match[index_trigger_data]["market_cap"]):
 									
 									#print
-									print (f'c{match[index_trigger_data]["coin"].upper()} is {match[index_trigger_data]["direction"]} {match[index_trigger_data]["market_cap"]*100}%')
+									print (f'c{match[index_trigger_data]["coin"].upper()} is {match[index_trigger_data]["direction"]} {float(match[index_trigger_data]["market_cap"])*100}%')
 
 									#update database
 									match[index_trigger_data]["already_called"] = 1
@@ -495,7 +500,7 @@ def main_real():
 								if float(coin_data[match[index_trigger_data]["coin"].upper()]["quote"]["USD"]["price"]) >= float(match[index_trigger_data]["price"]):
 									
 									#print results
-									print (f'c{match[index_trigger_data]["coin"].upper()} is {match[index_trigger_data]["direction"]} {match[index_trigger_data]["price"]*100.0}%')
+									print (f'c{match[index_trigger_data]["coin"].upper()} is {match[index_trigger_data]["direction"]} {float(match[index_trigger_data]["price"])*100.0}%')
 
 									#update database
 									match[index_trigger_data]["already_called"] = 1
@@ -505,7 +510,7 @@ def main_real():
 									if (match[index_action_type] == 'notification') and \
 										(match[index_action_subtype] == 'send_email'):
 										emailAddress = match[index_action_data]["email"]
-										send_email_price(emailAddress, match, index_trigger_data, index_trigger_action_id, index_trigger_subtype)
+										send_email_price(emailAddress, match, index_trigger_data, index_unique_id, index_trigger_subtype)
 									#If action_subtype == webhook, send json, rpc, api_action
 									elif (match[index_action_type] == 'webhook'):
 										dataJson = {
@@ -530,7 +535,7 @@ def main_real():
 								if float(coin_data[match[index_trigger_data]["coin"].upper()]["quote"]["USD"]["price"]) <= float(match[index_trigger_data]["price"]):
 									
 									#print
-									print (f'c{match[index_trigger_data]["coin"].upper()} is {match[index_trigger_data]["direction"]} {match[index_trigger_data]["price"]*100.0}%')
+									print (f'c{match[index_trigger_data]["coin"].upper()} is {match[index_trigger_data]["direction"]} {float(match[index_trigger_data]["price"])*100.0}%')
 
 									#update database
 									match[index_trigger_data]["already_called"] = 1
@@ -540,7 +545,7 @@ def main_real():
 									if (match[index_action_type] == 'notification') and \
 										(match[index_action_subtype] == 'send_email'):
 										emailAddress = match[index_action_data]["email"]
-										send_email_price(emailAddress, match, index_trigger_data, index_trigger_action_id, index_trigger_subtype)
+										send_email_price(emailAddress, match, index_trigger_data, index_unique_id, index_trigger_subtype)
 									#If action_subtype == webhook, send json, rpc, api_action
 									elif (match[index_action_type] == 'webhook'):
 										dataJson = {
@@ -565,6 +570,6 @@ def main_real():
 		except Exception as ex:
 			print ('Something went wrong',ex)
 
-		
+	
 if __name__ == "__main__":
     main_real()

@@ -6,6 +6,23 @@ schema = 'public'
 postgreSQL_pool = psycopg2.pool.SimpleConnectionPool(1, 20, host="",database="", user="", password="", port="", options=f'-c search_path={schema}',)
 postgres_conn  = postgreSQL_pool.getconn()
 
+def runMultipleInsert(connPool, queryText, values, returnVar):
+    try:
+        conn = connPool.getconn()
+        cursor = conn.cursor()        
+        psycopg2.extras.execute_values(cursor, queryText, values)
+        conn.commit()
+        if returnVar:
+        	return cursor.fetchone()[0];
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        print ("Error while running PostgreSQL insert: ", error)
+
+    finally:        
+        if(conn):
+            cursor.close()
+            connPool.putconn(conn)
+
 def lambda_handler(event, context):
 	trigger = event['trigger']
 	actions = event['actions']
@@ -21,25 +38,25 @@ def lambda_handler(event, context):
 			wallet_address_lower = str(trigger["trigger_data"]["wallet_address"]).lower()
 			trigger["trigger_data"]["wallet_address"] = wallet_address_lower
 		
-		sql = 'INSERT INTO triggers ("trigger_type", "trigger_subtype", "data") VALUES (\''+str(trigger["trigger_type"])+'\', \''+trigger["trigger_subtype"]+'\', \''+str(trigger["trigger_data"]).replace("'",'"')+'\') RETURNING id;'
-		cur.execute(sql)
-		trigger_id = cur.fetchone()[0]
+		value_list = [{"trigger_type":str(trigger["trigger_type"]), "trigger_subtype":str(trigger["trigger_subtype"]), "data":str(trigger["trigger_data"]).replace("'",'"')}]
+		values = [(x["trigger_type"], x["trigger_subtype"], x["data"]) for x in value_list]
+		trigger_id = runMultipleInsert(postgreSQL_pool, 'INSERT INTO triggers ("trigger_type", "trigger_subtype", "data") VALUES %s RETURNING id;', values, True)
 		
 		#insert action
 		action_ids = []
 
 		for action in actions:
-			sql = 'INSERT INTO actions ("action_type", "action_subtype", "data") VALUES (\''+action["action_type"]+'\', \''+action["action_subtype"]+'\', \''+str(action["action_data"]).replace("'",'"')+'\') RETURNING id;'
-			cur.execute(sql)
-			action_id = cur.fetchone()[0]
+			value_list = [{"action_type":str(action["action_type"]), "action_subtype":str(action["action_subtype"]), "data":str(action["action_data"]).replace("'",'"')}]
+			values = [(x["action_type"], x["action_subtype"], x["data"]) for x in value_list]
+			action_id = runMultipleInsert(postgreSQL_pool, 'INSERT INTO actions ("action_type", "action_subtype", "data") VALUES %s RETURNING id;', values, True)
 			action_ids.append(action_id)
 
 			# Generate a random uuid
 			unique_id = uuid.uuid4()
 
-			sql = 'INSERT INTO triggers_actions ("trigger_id", "action_id", "unique_id") VALUES (\''+str(trigger_id)+'\', \''+str(action_id)+'\', \''+str(unique_id)+'\') RETURNING id;'
-			cur.execute(sql)
-			id_trigger_action = cur.fetchone()[0]
+			value_list = [{"trigger_id":str(trigger_id), "action_id":str(action_id), "unique_id":str(unique_id)}]
+			values = [(x["trigger_id"], x["action_id"], x["unique_id"]) for x in value_list]
+			id_trigger_action = runMultipleInsert(postgreSQL_pool, 'INSERT INTO triggers_actions ("trigger_id", "action_id", "unique_id") VALUES %s RETURNING id;', values, True)
 
 			trigger_actions.append({"TRIGGER-ACTION-ID":str(unique_id)}) #updating to unique_id
 

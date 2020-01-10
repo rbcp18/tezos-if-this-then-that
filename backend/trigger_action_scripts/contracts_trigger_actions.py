@@ -40,7 +40,7 @@ def processBlock(blockLevel, pool):
     print (blockLevel)
     txList = getAllOperationRecords(blockLevel)
     print (txList)
-    simpleTxList = [(x['source'].lower(), x['destination'].lower(), x['amount'], x['blockHash'].lower()) for x in txList]
+    simpleTxList = [(x['source'].lower(), x['destination'].lower(), x['amount'], x['blockHash']) for x in txList]
     print ("SIMPLE LIST")
     print (simpleTxList)
     runGenericStatement(pool, 'CREATE TEMPORARY TABLE tezos_block_overview (tx_source varchar, tx_destination varchar, tx_amt varchar, block_hash varchar)')
@@ -68,6 +68,11 @@ def processMatches(colnames, matches, isFromMatches):
         index_action_data = colnames.index('action_data')
         index_trigger_data = colnames.index('trigger_data')
         index_trigger_action_id = colnames.index('trigger_action_id')
+        index_unique_id = index_trigger_action_id
+        try:
+            index_unique_id = colnames.index('unique_id')
+        except:
+            print ("No unique_id found.")
         for match in matches:
             print ('match')
             print (match)
@@ -82,10 +87,10 @@ def processMatches(colnames, matches, isFromMatches):
                   "to_email": emailAddress,
                   "subject": coin_upper+" Sent To Contract",
                   "text_line": coin_upper+" Sent To Contract",
-                  "main_title": match[index_tx_amt]+" "+coin_upper+" Sent To Contract "+match[index_trigger_data]['contract_address'],
+                  "main_title": match[index_tx_amt]+" "+coin_upper+" Sent To Contract "+match[index_trigger_data]['contract_address'] + " at Operation Hash " + match[colnames.index('block_hash')],
                   "trigger_text": coin_upper+" Sent To Contract "+match[index_trigger_data]['contract_address'],
                   "action_text": "send email to "+emailAddress,
-                  "id_trigger_action": match[index_trigger_action_id]
+                  "id_trigger_action": match[index_unique_id]
                 }
                 print(payload)
                 try:
@@ -254,10 +259,10 @@ def processMatches(colnames, matches, isFromMatches):
                       "to_email": emailAddress,
                       "subject": coin_upper+" Sent To Contract",
                       "text_line": coin_upper+" Sent To Contract",
-                      "main_title": match[index_tx_amt]+" "+coin_upper+" Sent To Contract "+match[index_trigger_data]['contract_address']+" Google Sheets Data: "+json.dumps(api_response),
+                      "main_title": match[index_tx_amt]+" "+coin_upper+" Sent To Contract "+match[index_trigger_data]['contract_address']+" Google Sheets Data: "+json.dumps(api_response) + " at Operation Hash " + match[colnames.index('block_hash')],
                       "trigger_text": coin_upper+" Sent To Contract "+match[index_trigger_data]['contract_address'],
                       "action_text": "send email to "+emailAddress,
-                      "id_trigger_action": match[index_trigger_action_id]
+                      "id_trigger_action": match[index_unique_id]
                     }
                     print(email_payload)
                     try:
@@ -292,10 +297,11 @@ def main_real():
 
         newblockLevel = getBlockLevel()
         
-        print (f"Looping between {blockLevel} and {newblockLevel}")
-        if blockLevel != newblockLevel:
-            try:          
-                processBlock(newblockLevel, pg_pool)
+        while blockLevel < newblockLevel:
+            blockLevel += 1;
+            print (f"Looping between {blockLevel} and {newblockLevel}")
+            try:    
+                processBlock(blockLevel, pg_pool)
             except Exception as err:
                 print (f"Cannot process block: {blockLevel}, skipping it, because of exception", err)                
 
