@@ -1,5 +1,5 @@
 # Tezos: If This Then That
-The official "If This, Then That" project for the Tezos blockchain. The project acts as a protocol-level trigger and events platform for both on-chain and off-chain activity.
+"If This, Then That" project for the Tezos blockchain. The project acts as a protocol-level trigger and events platform for both on-chain and off-chain activity.
 
 The live point-and-click interface is available for end users at https://dash.fabrx.io/ifttt/tezos/. 
 
